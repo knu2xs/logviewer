@@ -8,6 +8,12 @@
 
 **Input**: User story: "As a user, I want to open a log file so I can inspect its contents."
 
+## Clarifications
+
+### Session 2026-07-09
+
+- Q: Which input format should v1 support? → A: Support both the pipe-delimited format already stated in the spec and the comma-timestamp example lines.
+
 ## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Import and Inspect Log File (Priority: P1)
@@ -74,3 +80,36 @@ Represents a line that could not be parsed, including the line reference and a h
 - A parser contract already exists or will exist to interpret supported log lines.
 - The application can surface parse errors without requiring the user to leave the import screen.
 - The first version focuses on inspection and correctness rather than advanced file management.
+
+### Input Log Formats
+
+Supported v1 line shapes:
+
+- `timestamp | logger | level | message`
+- `timestamp,mmm | logger | level | message`
+
+Example:
+
+2026-07-09 10:38:56,927 | everett_attributerules | INFO | Starting everett-attributerules attribute rules application.
+2026-07-09 10:38:56,927 | everett_attributerules | INFO | Configuration loaded from: d:\projects\everett-attributerules\config\config.yaml
+2026-07-09 10:38:56,928 | everett_attributerules | INFO | Output geodatabase: d:\projects\everett-attributerules\data\processed\processed.gdb
+2026-07-09 10:38:56,928 | everett_attributerules | INFO | Template geodatabase: d:\projects\everett-attributerules\data\external\ssgensql9.gdb
+2026-07-09 10:38:56,928 | everett_attributerules | INFO | Mapping file:        d:\projects\everett-attributerules\data\interim\arcade\AttributeRules_AllRules.xlsx
+2026-07-09 10:38:56,929 | everett_attributerules | INFO | Arcade scripts dir:  d:\projects\everett-attributerules\data\interim\arcade\arcade_scripts
+2026-07-09 10:38:56,929 | everett_attributerules | INFO | Operation:           ADD
+2026-07-09 10:38:56,929 | everett_attributerules | INFO | Skip existing:       True
+2026-07-09 10:38:56,929 | everett_attributerules | INFO | Sync triggers on ADD:True
+2026-07-09 10:39:34,353 | everett_attributerules.apply_rules | INFO | Reading mapping file: d:\projects\everett-attributerules\data\interim\arcade\AttributeRules_AllRules.xlsx
+2026-07-09 10:39:34,695 | everett_attributerules.apply_rules | DEBUG | Read 95 rules from mapping file
+2026-07-09 10:44:16,545 | everett_attributerules.apply_rules | INFO | ADD rule: Rule_24 on WCONTROLVALVE
+2026-07-09 10:44:16,995 | everett_attributerules.apply_rules | INFO | ✓ Added rule: Rule_24
+2026-07-09 10:44:17,445 | everett_attributerules.apply_rules | INFO | Rule 'Rule_25': script uses NextSequenceValue or FeatureSetByName — forcing exclude_from_client_evaluation to True
+2026-07-09 10:44:17,445 | everett_attributerules.apply_rules | INFO | ADD rule: Rule_25 on WPRESSURIZEDMAIN
+2026-07-09 10:44:17,851 | everett_attributerules.apply_rules | INFO | ✓ Added rule: Rule_25
+2026-07-09 10:44:17,851 | everett_attributerules.apply_rules | WARNING | Rule 'Rule_26' [CURRENT_USER]: TABLENAME='*' with editor-tracking method — enable Editor Tracking on each feature class instead of registering an Attribute Rule.
+2026-07-09 10:44:17,852 | everett_attributerules.apply_rules | WARNING | Rule 'Rule_27' [TIMESTAMP]: TABLENAME='*' with editor-tracking method — enable Editor Tracking on each feature class instead of registering an Attribute Rule.
+2026-07-09 10:44:17,852 | everett_attributerules.apply_rules | INFO | Rule 'Rule_28': FC 'wnetworkstructure_pumps' missing required field(s) ['code', 'feature_id'] — skipping
+2026-07-09 10:44:17,852 | everett_attributerules.apply_rules | INFO | Rule 'Rule_28': FC 'wnetworkstructure_hvac' missing required field(s) ['code', 'feature_id'] — skipping
+2026-07-09 10:44:17,853 | everett_attributerules.apply_rules | INFO | Rule 'Rule_28': FC 'wnetworkstructure_motors' missing required field(s) ['code', 'feature_id'] — skipping
+2026-07-09 10:44:17,853 | everett_attributerules.apply_rules | INFO | Rule 'Rule_28': FC 'wnetworkstructure_electricalsystem' missing required field(s) ['code', 'feature_id'] — skipping
+2026-07-09 10:44:17,853 | everett_attributerules.apply_rules | INFO | Rule 'Rule_28': FC 'wnetworkstructure_generators' missing required field(s) ['code', 'feature_id'] — skipping
