@@ -69,7 +69,13 @@ const columnDefs: Array<ColDef<ParsedLogRow> & { field: ColumnField }> = [
     minWidth: 180,
     valueFormatter: ({ value }) => (value instanceof Date ? value.toLocaleString() : '—'),
   },
-  { field: 'logger', headerName: 'Logger', flex: 0.9, minWidth: 160, valueFormatter: ({ value }) => value || '—' },
+  {
+    field: 'logger',
+    headerName: 'Logger',
+    flex: 0.9,
+    minWidth: 160,
+    valueFormatter: ({ value }) => value || '—',
+  },
   {
     field: 'level',
     headerName: 'Level',
@@ -102,6 +108,15 @@ export function LogImportResultsGrid({
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedRow, setSelectedRow] = useState<ParsedLogRow | null>(null);
   const hasHiddenColumns = visibleColumns.length !== COLUMN_OPTIONS.length;
+  const rowData = rows ?? session?.rows ?? [];
+  const displayedColumnDefs = useMemo(
+    () =>
+      columnDefs.map((column) => ({
+        ...column,
+        hide: !visibleColumns.includes(column.field),
+      })),
+    [visibleColumns],
+  );
 
   useEffect(() => {
     if (!isExpanded) {
@@ -150,16 +165,6 @@ export function LogImportResultsGrid({
     );
   }
 
-  const rowData = rows ?? session.rows;
-  const displayedColumnDefs = useMemo(
-    () =>
-      columnDefs.map((column) => ({
-        ...column,
-        hide: !visibleColumns.includes(column.field),
-      })),
-    [visibleColumns],
-  );
-
   const toggleColumn = (columnValue: ColumnField) => {
     setVisibleColumns((current) =>
       current.includes(columnValue)
@@ -186,7 +191,11 @@ export function LogImportResultsGrid({
       withBorder
       radius="md"
       padding="lg"
-      className={isExpanded ? 'log-import-results-card log-import-results-card--expanded' : 'log-import-results-card'}
+      className={
+        isExpanded
+          ? 'log-import-results-card log-import-results-card--expanded'
+          : 'log-import-results-card'
+      }
     >
       <Stack gap="sm">
         <Group justify="space-between" align="flex-start">
@@ -240,7 +249,9 @@ export function LogImportResultsGrid({
         ) : null}
 
         {hasRows ? (
-          <div className={isExpanded ? 'log-import-grid log-import-grid--expanded' : 'log-import-grid'}>
+          <div
+            className={isExpanded ? 'log-import-grid log-import-grid--expanded' : 'log-import-grid'}
+          >
             <AgGridReact<ParsedLogRow>
               rowData={rowData}
               columnDefs={displayedColumnDefs}
@@ -253,7 +264,9 @@ export function LogImportResultsGrid({
             />
           </div>
         ) : (
-          <Text c="dimmed">{emptyStateMessage ?? 'The import completed but no valid rows were found.'}</Text>
+          <Text c="dimmed">
+            {emptyStateMessage ?? 'The import completed but no valid rows were found.'}
+          </Text>
         )}
       </Stack>
 
@@ -301,7 +314,9 @@ export function LogImportResultsGrid({
               <Text fw={700} mb={4}>
                 Message
               </Text>
-              <Text className="log-entry-modal-message-text">{selectedRow.message || '(blank line)'}</Text>
+              <Text className="log-entry-modal-message-text">
+                {selectedRow.message || '(blank line)'}
+              </Text>
             </div>
           </Stack>
         ) : null}

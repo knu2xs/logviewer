@@ -30,12 +30,9 @@ export const AppShell = ({ children }: AppShellProps) => {
                 Log Viewer
               </Title>
               <Text c="dimmed" size="sm">
-                Foundation shell
+                Lightweight log parser
               </Text>
             </div>
-            <Text size="sm" c="dimmed">
-              Navigation placeholder
-            </Text>
           </Group>
         </Container>
       </MantineAppShell.Header>

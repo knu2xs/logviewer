@@ -249,8 +249,7 @@ tr th {
 
 .log-filter-panel {
   background:
-    linear-gradient(180deg, rgba(79, 70, 229, 0.07), rgba(79, 70, 229, 0)),
-    var(--color-background);
+    linear-gradient(180deg, rgba(79, 70, 229, 0.07), rgba(79, 70, 229, 0)), var(--color-background);
 }
 
 .log-filter-toolbar {
@@ -322,6 +321,11 @@ tr th {
 .log-import-grid {
   height: 420px;
   width: 100%;
+}
+
+.log-import-results-card {
+  background:
+    linear-gradient(180deg, rgba(79, 70, 229, 0.07), rgba(79, 70, 229, 0)), var(--color-background);
 }
 
 .log-import-grid .ag-row {

@@ -30,6 +30,7 @@ export const HomePage: React.FC = () => {
   const customRangeDraftEnd = useLogFilterStore((state) => state.customRangeDraftEnd);
   const customRangeError = useLogFilterStore((state) => state.customRangeError);
   const [debouncedSearchText] = useDebouncedValue(filters.searchText, 250);
+  const rows = React.useMemo(() => session?.rows ?? [], [session]);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -43,7 +44,6 @@ export const HomePage: React.FC = () => {
   };
 
   const isImporting = session?.status === 'importing';
-  const rows = session?.rows ?? [];
   const latestTimestamp = React.useMemo(() => getLatestTimestamp(rows), [rows]);
   const loggerOptions = React.useMemo(() => getLoggerOptions(rows), [rows]);
   const effectiveFilters = React.useMemo(
