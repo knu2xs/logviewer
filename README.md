@@ -1,6 +1,6 @@
 # Log Viewer Foundation
 
-Log Viewer is a TypeScript + React application foundation for inspecting log files, rendering a consistent app shell, and providing the domain types and tooling needed for future feature work.
+Log Viewer is a TypeScript + React application for importing, exploring, and filtering log files with parser-aware recovery for malformed continuation lines.
 
 ## Getting Started
 
@@ -28,12 +28,21 @@ The application uses a layered structure:
 - `src/pages` for page-level screens such as `HomePage`.
 - `src/store` for shared application state with Zustand.
 - `src/core/models` and `src/core/parsers` for domain contracts.
+- `src/filters` for pure client-side filtering functions.
 - `src/styles` for global styling and theme tokens.
 - `docs/adr` for architecture decisions that should remain stable over time.
 
-## Roadmap
+## Filtering Workflow
 
-The next feature slice is `002-log-import`, which will add file selection, line parsing, and a grid-based display for parsed log entries. Search and filtering remain out of scope for that slice. The associated ADR is [docs/adr/0002-log-import-and-viewing.md](docs/adr/0002-log-import-and-viewing.md).
+After importing a file, use the filter toolbar to:
+
+- Search message text while keeping logger/severity/time filters intact.
+- Select one or more logger names.
+- Set a minimum severity threshold.
+- Apply relative or custom time windows anchored to the imported dataset.
+- Recover quickly from empty results with a clear-filters action.
+
+The filtering architecture decision is documented in [docs/adr/0003-client-side-filtering.md](docs/adr/0003-client-side-filtering.md).
 
 ## Validation Notes
 
@@ -47,3 +56,13 @@ The next feature slice is `002-log-import`, which will add file selection, line 
 - Unit tests live alongside source files or under `tests/unit`.
 - E2E tests live under `tests/e2e`.
 - Use `npm run test` for unit-level feedback and `npm run test:e2e` for browser coverage.
+
+## Large Fixture Generation
+
+Generate a deterministic 50,000-entry log fixture for responsiveness checks:
+
+```bash
+node tests/e2e/fixtures/generate-large-log.mjs
+```
+
+This writes `tests/e2e/fixtures/logs/synthetic_50000.log`.
