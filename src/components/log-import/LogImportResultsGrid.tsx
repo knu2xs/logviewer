@@ -10,6 +10,8 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 interface LogImportResultsGridProps {
   session: ImportSession | null;
+  rows?: ParsedLogRow[];
+  emptyStateMessage?: string;
 }
 
 const columnDefs: ColDef<ParsedLogRow>[] = [
@@ -32,7 +34,7 @@ const columnDefs: ColDef<ParsedLogRow>[] = [
   { field: 'sourceFile', headerName: 'Source File', flex: 1, minWidth: 180 },
 ];
 
-export function LogImportResultsGrid({ session }: LogImportResultsGridProps) {
+export function LogImportResultsGrid({ session, rows, emptyStateMessage }: LogImportResultsGridProps) {
   if (!session) {
     return (
       <Card withBorder radius="md" padding="lg">
@@ -59,14 +61,16 @@ export function LogImportResultsGrid({ session }: LogImportResultsGridProps) {
     );
   }
 
-  if (session.rows.length === 0) {
+  const rowData = rows ?? session.rows;
+
+  if (rowData.length === 0) {
     return (
       <Card withBorder radius="md" padding="lg">
         <Stack gap="xs">
           <Title order={3} size="h4">
             Parsed rows
           </Title>
-          <Text c="dimmed">The import completed but no valid rows were found.</Text>
+          <Text c="dimmed">{emptyStateMessage ?? 'The import completed but no valid rows were found.'}</Text>
         </Stack>
       </Card>
     );
@@ -84,7 +88,7 @@ export function LogImportResultsGrid({ session }: LogImportResultsGridProps) {
 
         <div className="log-import-grid">
           <AgGridReact<ParsedLogRow>
-            rowData={session.rows}
+            rowData={rowData}
             columnDefs={columnDefs}
             domLayout="normal"
             defaultColDef={{ sortable: true, resizable: true }}

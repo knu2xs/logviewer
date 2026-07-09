@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@mantine/core": "^9.4.1",
+    "@mantine/dates": "^9.4.1",
     "@mantine/hooks": "^9.4.1",
     "ag-grid-community": "^36.0.0",
     "ag-grid-react": "^36.0.0",

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import { parseLogImportContent } from '../core/parsers/logImportParser';
 import type { ImportSession, ImportSessionStatus } from '../core/models/ImportSession';
+import { useLogFilterStore } from './logFilterStore';
 
 export interface LogImportState {
   session: ImportSession | null;
@@ -46,6 +47,8 @@ export const useLogImportStore = create<LogImportState>((set) => ({
   importLogFile: async (file: File) => {
     const sessionId = createSessionId();
     const startedAt = new Date();
+
+    useLogFilterStore.getState().resetFilters();
 
     set({
       errorMessage: null,

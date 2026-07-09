@@ -258,6 +258,37 @@ tr th {
     var(--color-background);
 }
 
+.log-filter-panel {
+  background:
+    linear-gradient(180deg, rgba(70, 79, 235, 0.04), rgba(70, 79, 235, 0)),
+    var(--color-background);
+}
+
+.log-filter-toolbar {
+  width: 100%;
+}
+
+.log-filter-controls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.log-filter-time-group {
+  flex-wrap: wrap;
+}
+
+.log-filter-summary {
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border);
+}
+
+.log-filter-empty-state {
+  background:
+    linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(0, 102, 204, 0.02)),
+    var(--color-background);
+}
+
 .log-import-actions {
   flex-wrap: wrap;
 }

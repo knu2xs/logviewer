@@ -87,6 +87,11 @@ export function LogImportSummary({ session, errorMessage }: LogImportSummaryProp
               <Text fw={600}>{session.parseErrorCount}</Text>
             </div>
           </Group>
+
+          <Text size="sm" c="dimmed">
+            Importing a new file resets all active filters to keep results scoped to the latest
+            dataset.
+          </Text>
         </Stack>
       </Card>
 
