@@ -110,6 +110,25 @@ body {
     color var(--transition-normal);
 }
 
+a {
+  text-decoration: none;
+  color: #464feb;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+tr th,
+tr td {
+  border: 1px solid #e6e6e6;
+}
+
+tr th {
+  background-color: #f5f5f5;
+}
+
 /* ===========================
    AppShell Layout
    =========================== */
