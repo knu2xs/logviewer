@@ -20,6 +20,7 @@ function createEmptySession(id: string): ImportSession {
     id,
     sourceFileName: '',
     sourceFileSize: 0,
+    sourceFormat: 'Unknown',
     startedAt: new Date(),
     completedAt: null,
     status: 'idle',
@@ -33,7 +34,19 @@ function createEmptySession(id: string): ImportSession {
 
 function finalizeSession(
   session: ImportSession,
-  updates: Partial<Pick<ImportSession, 'status' | 'completedAt' | 'totalLines' | 'validEntryCount' | 'parseErrorCount' | 'rows' | 'errors'>>,
+  updates: Partial<
+    Pick<
+      ImportSession,
+      | 'status'
+      | 'completedAt'
+      | 'totalLines'
+      | 'validEntryCount'
+      | 'parseErrorCount'
+      | 'rows'
+      | 'errors'
+      | 'sourceFormat'
+    >
+  >,
 ): ImportSession {
   return {
     ...session,
@@ -56,6 +69,7 @@ export const useLogImportStore = create<LogImportState>((set) => ({
         ...createEmptySession(sessionId),
         sourceFileName: file.name,
         sourceFileSize: file.size,
+        sourceFormat: 'Unknown',
         startedAt,
         status: 'importing',
       },
@@ -75,6 +89,7 @@ export const useLogImportStore = create<LogImportState>((set) => ({
           parseErrorCount: parsed.errors.length,
           rows: parsed.rows,
           errors: parsed.errors,
+          sourceFormat: parsed.sourceFormat,
         }),
       }));
     } catch (error) {

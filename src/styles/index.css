@@ -328,13 +328,20 @@ tr th {
     linear-gradient(180deg, rgba(79, 70, 229, 0.07), rgba(79, 70, 229, 0)), var(--color-background);
 }
 
+.log-import-results-stack--expanded {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .log-import-grid .ag-row {
   cursor: pointer;
 }
 
 .log-import-grid--expanded {
-  height: calc(100vh - 260px);
-  min-height: 520px;
+  flex: 1;
+  min-height: 0;
+  height: auto;
 }
 
 .log-import-results-card--expanded {
@@ -345,8 +352,14 @@ tr th {
   width: auto;
   max-width: none;
   max-height: calc(100vh - 2rem);
-  overflow: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 20px 48px rgba(15, 23, 42, 0.28);
+}
+
+.log-import-results-card--expanded .log-import-grid--expanded {
+  min-height: 0;
 }
 
 .log-import-column-visibility {

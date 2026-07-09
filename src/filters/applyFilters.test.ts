@@ -10,6 +10,7 @@ function createRow(overrides: Partial<ParsedLogRow>): ParsedLogRow {
     lineNumber: 1,
     timestamp: new Date('2026-07-09T14:00:00'),
     logger: 'Portal.Security',
+    source: '',
     level: 'INFO',
     message: 'Token accepted',
     sourceFile: 'sample.log',
@@ -20,7 +21,7 @@ function createRow(overrides: Partial<ParsedLogRow>): ParsedLogRow {
 
 const defaultFilters: FilterState = {
   searchText: '',
-  selectedLoggers: [],
+  selectedSources: [],
   minimumLevel: 'NOTSET',
   timeFilter: 'ALL',
   customStart: null,
@@ -29,10 +30,38 @@ const defaultFilters: FilterState = {
 
 describe('applyFilters', () => {
   const rows = [
-    createRow({ id: '1', logger: 'Portal.Security', level: 'INFO', message: 'Token accepted', timestamp: new Date('2026-07-09T14:00:00') }),
-    createRow({ id: '2', logger: 'Portal.Security', level: 'ERROR', message: 'Token validation failed', timestamp: new Date('2026-07-09T14:15:00') }),
-    createRow({ id: '3', logger: 'Portal.Indexer', level: 'WARNING', message: 'Indexer token cache warm', timestamp: new Date('2026-07-09T14:30:00') }),
-    createRow({ id: '4', logger: 'ArcGIS.Server', level: 'TRACE', message: 'Verbose transport update', timestamp: new Date('2026-07-09T15:00:00') }),
+    createRow({
+      id: '1',
+      logger: 'Portal.Security',
+      source: 'Portal',
+      level: 'INFO',
+      message: 'Token accepted',
+      timestamp: new Date('2026-07-09T14:00:00'),
+    }),
+    createRow({
+      id: '2',
+      logger: 'Portal.Security',
+      source: 'Portal',
+      level: 'ERROR',
+      message: 'Token validation failed',
+      timestamp: new Date('2026-07-09T14:15:00'),
+    }),
+    createRow({
+      id: '3',
+      logger: 'Portal.Indexer',
+      source: 'Portal',
+      level: 'WARNING',
+      message: 'Indexer token cache warm',
+      timestamp: new Date('2026-07-09T14:30:00'),
+    }),
+    createRow({
+      id: '4',
+      logger: 'ArcGIS.Server',
+      source: 'Server',
+      level: 'TRACE',
+      message: 'Verbose transport update',
+      timestamp: new Date('2026-07-09T15:00:00'),
+    }),
   ];
   const latestTimestamp = new Date('2026-07-09T15:00:00');
 
@@ -42,20 +71,42 @@ describe('applyFilters', () => {
     expect(result.map((row) => row.id)).toEqual(['1', '2', '3']);
   });
 
-  it('filters by selected loggers', () => {
-    const result = applyFilters(rows, { ...defaultFilters, selectedLoggers: ['Portal.Security'] }, latestTimestamp);
+  it('filters by selected sources', () => {
+    const result = applyFilters(
+      rows,
+      { ...defaultFilters, selectedSources: ['Portal.Security'] },
+      latestTimestamp,
+    );
 
     expect(result.map((row) => row.id)).toEqual(['1', '2']);
   });
 
+  it('filters by source field values', () => {
+    const result = applyFilters(
+      rows,
+      { ...defaultFilters, selectedSources: ['Portal'] },
+      latestTimestamp,
+    );
+
+    expect(result.map((row) => row.id)).toEqual(['1', '2', '3']);
+  });
+
   it('filters by minimum severity and hides unknown levels above NOTSET', () => {
-    const result = applyFilters(rows, { ...defaultFilters, minimumLevel: 'WARNING' }, latestTimestamp);
+    const result = applyFilters(
+      rows,
+      { ...defaultFilters, minimumLevel: 'WARNING' },
+      latestTimestamp,
+    );
 
     expect(result.map((row) => row.id)).toEqual(['2', '3']);
   });
 
   it('applies time filters relative to the latest dataset timestamp', () => {
-    const result = applyFilters(rows, { ...defaultFilters, timeFilter: 'LAST_HOUR' }, latestTimestamp);
+    const result = applyFilters(
+      rows,
+      { ...defaultFilters, timeFilter: 'LAST_HOUR' },
+      latestTimestamp,
+    );
 
     expect(result.map((row) => row.id)).toEqual(['1', '2', '3', '4']);
   });
@@ -66,7 +117,7 @@ describe('applyFilters', () => {
       {
         ...defaultFilters,
         searchText: 'failed',
-        selectedLoggers: ['Portal.Security'],
+        selectedSources: ['Portal.Security'],
         minimumLevel: 'INFO',
         timeFilter: 'LAST_HOUR',
       },

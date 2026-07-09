@@ -3,7 +3,7 @@ import type { TimeFilter } from './TimeFilter';
 
 export interface FilterState {
   searchText: string;
-  selectedLoggers: string[];
+  selectedSources: string[];
   minimumLevel: SeverityValue;
   timeFilter: TimeFilter;
   customStart: Date | null;
@@ -12,7 +12,7 @@ export interface FilterState {
 
 export const DEFAULT_FILTER_STATE: FilterState = {
   searchText: '',
-  selectedLoggers: [],
+  selectedSources: [],
   minimumLevel: 'NOTSET',
   timeFilter: 'ALL',
   customStart: null,

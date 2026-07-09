@@ -10,6 +10,7 @@ function createRow(logger: string): ParsedLogRow {
     lineNumber: 1,
     timestamp: new Date('2026-07-09T08:15:21'),
     logger,
+    source: '',
     level: 'INFO',
     message: 'test',
     sourceFile: 'sample.log',
@@ -19,7 +20,12 @@ function createRow(logger: string): ParsedLogRow {
 
 describe('getLoggerOptions', () => {
   it('returns unique logger values sorted alphabetically while preserving original casing', () => {
-    const rows = [createRow('portal.Security'), createRow('ArcGIS.Server'), createRow('Portal.Security'), createRow('ArcGIS.Server')];
+    const rows = [
+      createRow('portal.Security'),
+      createRow('ArcGIS.Server'),
+      createRow('Portal.Security'),
+      createRow('ArcGIS.Server'),
+    ];
 
     expect(getLoggerOptions(rows)).toEqual(['ArcGIS.Server', 'Portal.Security', 'portal.Security']);
   });

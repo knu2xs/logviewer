@@ -7,5 +7,5 @@ export function filterByLogger(rows: ParsedLogRow[], selectedLoggers: string[]):
 
   const loggerSet = new Set(selectedLoggers);
 
-  return rows.filter((row) => loggerSet.has(row.logger));
+  return rows.filter((row) => loggerSet.has(row.logger) || loggerSet.has(row.source));
 }

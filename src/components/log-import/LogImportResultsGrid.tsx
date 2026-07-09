@@ -7,6 +7,7 @@ import type { ColDef, RowClickedEvent } from 'ag-grid-community';
 import type { ImportSession } from '../../core/models/ImportSession';
 import type { ParsedLogRow } from '../../core/models/ParsedLogRow';
 import { SEVERITY_RANK } from '../../core/models/SeverityValue';
+import type { SourceFormat } from '../../core/models/SourceFormat';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -18,7 +19,7 @@ interface LogImportResultsGridProps {
   summaryContent?: ReactNode;
 }
 
-type ColumnField = 'timestamp' | 'logger' | 'level' | 'message' | 'sourceFile';
+type ColumnField = 'timestamp' | 'logger' | 'source' | 'level' | 'message';
 
 interface ColumnOption {
   label: string;
@@ -28,19 +29,31 @@ interface ColumnOption {
 const COLUMN_OPTIONS: ColumnOption[] = [
   { label: 'Timestamp', value: 'timestamp' },
   { label: 'Logger', value: 'logger' },
+  { label: 'Source', value: 'source' },
   { label: 'Level', value: 'level' },
   { label: 'Message', value: 'message' },
-  { label: 'Source File', value: 'sourceFile' },
 ];
 
 const DEFAULT_VISIBLE_COLUMNS: ColumnField[] = COLUMN_OPTIONS.map((option) => option.value);
+
+function getColumnOptionsForFormat(sourceFormat: SourceFormat | null | undefined): ColumnOption[] {
+  if (sourceFormat === 'Python Pipe Delimited') {
+    return COLUMN_OPTIONS.filter((option) => option.value !== 'source');
+  }
+
+  if (sourceFormat === 'ArcGIS Portal' || sourceFormat === 'ArcGIS Server') {
+    return COLUMN_OPTIONS.filter((option) => option.value !== 'logger');
+  }
+
+  return COLUMN_OPTIONS;
+}
 
 type LevelTone = 'debug' | 'info' | 'warning' | 'error';
 
 function getLevelTone(level: string): LevelTone {
   const normalized = level.toUpperCase();
 
-  if (normalized === 'DEBUG') {
+  if (normalized === 'DEBUG' || normalized === 'VERBOSE' || normalized === 'FINE') {
     return 'debug';
   }
 
@@ -77,6 +90,13 @@ const columnDefs: Array<ColDef<ParsedLogRow> & { field: ColumnField }> = [
     valueFormatter: ({ value }) => value || '—',
   },
   {
+    field: 'source',
+    headerName: 'Source',
+    flex: 0.9,
+    minWidth: 160,
+    valueFormatter: ({ value }) => value || '—',
+  },
+  {
     field: 'level',
     headerName: 'Level',
     width: 140,
@@ -94,7 +114,6 @@ const columnDefs: Array<ColDef<ParsedLogRow> & { field: ColumnField }> = [
     minWidth: 260,
     valueFormatter: ({ value }) => (value ? value : '(blank line)'),
   },
-  { field: 'sourceFile', headerName: 'Source File', flex: 1, minWidth: 180 },
 ];
 
 export function LogImportResultsGrid({
@@ -107,15 +126,40 @@ export function LogImportResultsGrid({
   const [visibleColumns, setVisibleColumns] = useState<ColumnField[]>(DEFAULT_VISIBLE_COLUMNS);
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedRow, setSelectedRow] = useState<ParsedLogRow | null>(null);
-  const hasHiddenColumns = visibleColumns.length !== COLUMN_OPTIONS.length;
+  const columnOptions = useMemo(
+    () => getColumnOptionsForFormat(session?.sourceFormat),
+    [session?.sourceFormat],
+  );
+  const allowedColumnValues = useMemo(
+    () => new Set(columnOptions.map((option) => option.value)),
+    [columnOptions],
+  );
+  const defaultVisibleColumns = useMemo(
+    () => columnOptions.map((option) => option.value),
+    [columnOptions],
+  );
   const rowData = rows ?? session?.rows ?? [];
+  const showSourceField = session?.sourceFormat !== 'Python Pipe Delimited';
+  const showLoggerField =
+    session?.sourceFormat !== 'ArcGIS Portal' && session?.sourceFormat !== 'ArcGIS Server';
+  const effectiveVisibleColumns = useMemo(() => {
+    const normalized = visibleColumns.filter((column) => allowedColumnValues.has(column));
+
+    if (normalized.length === 0) {
+      return defaultVisibleColumns;
+    }
+
+    return normalized;
+  }, [allowedColumnValues, defaultVisibleColumns, visibleColumns]);
+  const hasHiddenColumns = effectiveVisibleColumns.length !== columnOptions.length;
   const displayedColumnDefs = useMemo(
     () =>
       columnDefs.map((column) => ({
         ...column,
-        hide: !visibleColumns.includes(column.field),
+        hide:
+          !allowedColumnValues.has(column.field) || !effectiveVisibleColumns.includes(column.field),
       })),
-    [visibleColumns],
+    [allowedColumnValues, effectiveVisibleColumns],
   );
 
   useEffect(() => {
@@ -174,7 +218,7 @@ export function LogImportResultsGrid({
   };
 
   const resetColumns = () => {
-    setVisibleColumns(DEFAULT_VISIBLE_COLUMNS);
+    setVisibleColumns(defaultVisibleColumns);
   };
 
   const hasRows = rowData.length > 0;
@@ -197,7 +241,14 @@ export function LogImportResultsGrid({
           : 'log-import-results-card'
       }
     >
-      <Stack gap="sm">
+      <Stack
+        gap="sm"
+        className={
+          isExpanded
+            ? 'log-import-results-stack log-import-results-stack--expanded'
+            : 'log-import-results-stack'
+        }
+      >
         <Group justify="space-between" align="flex-start">
           <div>
             <Title order={3} size="h4">
@@ -235,7 +286,7 @@ export function LogImportResultsGrid({
               </Button>
             </Group>
             <Group gap="md" className="log-import-column-visibility-options">
-              {COLUMN_OPTIONS.map((option) => (
+              {columnOptions.map((option) => (
                 <Checkbox
                   key={option.value}
                   label={option.label}
@@ -286,12 +337,22 @@ export function LogImportResultsGrid({
               </Text>
               {selectedRow.timestamp.toLocaleString()}
             </Text>
-            <Text>
-              <Text component="span" fw={700}>
-                Logger:{' '}
+            {showLoggerField ? (
+              <Text>
+                <Text component="span" fw={700}>
+                  Logger:{' '}
+                </Text>
+                {selectedRow.logger || '—'}
               </Text>
-              {selectedRow.logger || '—'}
-            </Text>
+            ) : null}
+            {showSourceField ? (
+              <Text>
+                <Text component="span" fw={700}>
+                  Source:{' '}
+                </Text>
+                {selectedRow.source || '—'}
+              </Text>
+            ) : null}
             <Text>
               <Text component="span" fw={700}>
                 Level:{' '}
@@ -318,6 +379,23 @@ export function LogImportResultsGrid({
                 {selectedRow.message || '(blank line)'}
               </Text>
             </div>
+            {selectedRow.attributes && Object.keys(selectedRow.attributes).length > 0 ? (
+              <div className="log-entry-modal-message">
+                <Text fw={700} mb={4}>
+                  XML attributes
+                </Text>
+                <Stack gap={4}>
+                  {Object.entries(selectedRow.attributes).map(([attributeName, attributeValue]) => (
+                    <Text key={attributeName} size="sm">
+                      <Text component="span" fw={700}>
+                        {attributeName}:{' '}
+                      </Text>
+                      {attributeValue || '—'}
+                    </Text>
+                  ))}
+                </Stack>
+              </div>
+            ) : null}
           </Stack>
         ) : null}
       </Modal>

@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 
-import { DEFAULT_FILTER_STATE, type FilterState, type SeverityValue, type TimeFilter } from '../core/models';
+import {
+  DEFAULT_FILTER_STATE,
+  type FilterState,
+  type SeverityValue,
+  type TimeFilter,
+} from '../core/models';
 
 export interface LogFilterState {
   filters: FilterState;
@@ -9,7 +14,7 @@ export interface LogFilterState {
   customRangeError: string | null;
   setSearchText: (searchText: string) => void;
   clearSearchText: () => void;
-  setSelectedLoggers: (selectedLoggers: string[]) => void;
+  setSelectedSources: (selectedSources: string[]) => void;
   setMinimumLevel: (minimumLevel: SeverityValue) => void;
   setTimeFilter: (timeFilter: TimeFilter) => void;
   setCustomRange: (customStart: Date | null, customEnd: Date | null) => void;
@@ -41,11 +46,11 @@ export const useLogFilterStore = create<LogFilterState>((set) => ({
         searchText: '',
       },
     })),
-  setSelectedLoggers: (selectedLoggers) =>
+  setSelectedSources: (selectedSources) =>
     set((state) => ({
       filters: {
         ...state.filters,
-        selectedLoggers: [...new Set(selectedLoggers)],
+        selectedSources: [...new Set(selectedSources)],
       },
     })),
   setMinimumLevel: (minimumLevel) =>

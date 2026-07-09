@@ -10,7 +10,7 @@ describe('useLogFilterStore', () => {
   it('starts with the default filter state', () => {
     expect(useLogFilterStore.getState().filters).toEqual({
       searchText: '',
-      selectedLoggers: [],
+      selectedSources: [],
       minimumLevel: 'NOTSET',
       timeFilter: 'ALL',
       customStart: null,
@@ -24,13 +24,13 @@ describe('useLogFilterStore', () => {
     const end = new Date('2026-07-09T10:00:00');
 
     state.setSearchText('token');
-    state.setSelectedLoggers(['Portal.Security', 'Portal.Security']);
+    state.setSelectedSources(['Portal.Security', 'Portal.Security']);
     state.setMinimumLevel('ERROR');
     state.setCustomRange(start, end);
 
     expect(useLogFilterStore.getState().filters).toEqual({
       searchText: 'token',
-      selectedLoggers: ['Portal.Security'],
+      selectedSources: ['Portal.Security'],
       minimumLevel: 'ERROR',
       timeFilter: 'CUSTOM',
       customStart: start,
@@ -41,7 +41,7 @@ describe('useLogFilterStore', () => {
 
     expect(useLogFilterStore.getState().filters).toEqual({
       searchText: '',
-      selectedLoggers: [],
+      selectedSources: [],
       minimumLevel: 'NOTSET',
       timeFilter: 'ALL',
       customStart: null,
@@ -62,7 +62,9 @@ describe('useLogFilterStore', () => {
     expect(useLogFilterStore.getState().filters.customEnd).toEqual(validEnd);
     expect(useLogFilterStore.getState().customRangeDraftStart).toEqual(invalidStart);
     expect(useLogFilterStore.getState().customRangeDraftEnd).toEqual(validEnd);
-    expect(useLogFilterStore.getState().customRangeError).toBe('Start date/time must be before end date/time.');
+    expect(useLogFilterStore.getState().customRangeError).toBe(
+      'Start date/time must be before end date/time.',
+    );
   });
 
   it('clears custom range drafts and errors on reset for empty-result recovery', () => {

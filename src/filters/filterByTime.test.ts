@@ -10,6 +10,7 @@ function createRow(id: string, timestamp: string): ParsedLogRow {
     lineNumber: 1,
     timestamp: new Date(timestamp),
     logger: 'Portal.Security',
+    source: '',
     level: 'INFO',
     message: 'Token accepted',
     sourceFile: 'sample.log',

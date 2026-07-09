@@ -1,30 +1,25 @@
 import { ActionIcon, MultiSelect, Select, Stack, TextInput } from '@mantine/core';
 
 import type { FilterState, SeverityValue } from '../../core/models';
+import type { SeverityOption } from '../../filters/getSeverityOptions';
 import { LogTimeFilter } from './LogTimeFilter';
 
 const FILTER_COMBOBOX_PROPS = {
   zIndex: 2000,
 };
 
-const SEVERITY_OPTIONS: Array<{ label: string; value: SeverityValue }> = [
-  { label: 'NOTSET', value: 'NOTSET' },
-  { label: 'DEBUG', value: 'DEBUG' },
-  { label: 'INFO', value: 'INFO' },
-  { label: 'WARNING', value: 'WARNING' },
-  { label: 'ERROR', value: 'ERROR' },
-  { label: 'CRITICAL', value: 'CRITICAL' },
-];
-
 interface LogFilterToolbarProps {
   filters: FilterState;
-  loggerOptions: string[];
+  sourceOptions: string[];
+  sourceFilterLabel: string;
+  sourceFilterPlaceholder: string;
+  severityOptions: SeverityOption[];
   customRangeDraftStart: Date | null;
   customRangeDraftEnd: Date | null;
   customRangeError: string | null;
   onSearchTextChange: (value: string) => void;
   onClearSearch: () => void;
-  onSelectedLoggersChange: (value: string[]) => void;
+  onSelectedSourcesChange: (value: string[]) => void;
   onMinimumLevelChange: (value: SeverityValue) => void;
   onTimeFilterChange: (value: FilterState['timeFilter']) => void;
   onCustomRangeChange: (customStart: Date | null, customEnd: Date | null) => void;
@@ -32,13 +27,16 @@ interface LogFilterToolbarProps {
 
 export function LogFilterToolbar({
   filters,
-  loggerOptions,
+  sourceOptions,
+  sourceFilterLabel,
+  sourceFilterPlaceholder,
+  severityOptions,
   customRangeDraftStart,
   customRangeDraftEnd,
   customRangeError,
   onSearchTextChange,
   onClearSearch,
-  onSelectedLoggersChange,
+  onSelectedSourcesChange,
   onMinimumLevelChange,
   onTimeFilterChange,
   onCustomRangeChange,
@@ -53,9 +51,7 @@ export function LogFilterToolbar({
         rightSection={
           filters.searchText ? (
             <ActionIcon variant="subtle" aria-label="Clear search" onClick={onClearSearch}>
-              <span style={{ fontWeight: 700 }}>
-                ×
-              </span>
+              <span style={{ fontWeight: 700 }}>×</span>
             </ActionIcon>
           ) : null
         }
@@ -72,11 +68,11 @@ export function LogFilterToolbar({
         />
 
         <MultiSelect
-          label="Logger names"
-          placeholder="All Loggers"
-          data={loggerOptions}
-          value={filters.selectedLoggers}
-          onChange={onSelectedLoggersChange}
+          label={sourceFilterLabel}
+          placeholder={sourceFilterPlaceholder}
+          data={sourceOptions}
+          value={filters.selectedSources}
+          onChange={onSelectedSourcesChange}
           comboboxProps={FILTER_COMBOBOX_PROPS}
           clearable
           searchable
@@ -84,9 +80,11 @@ export function LogFilterToolbar({
 
         <Select
           label="Minimum severity"
-          data={SEVERITY_OPTIONS}
+          data={severityOptions}
           value={filters.minimumLevel}
-          onChange={(nextValue) => onMinimumLevelChange((nextValue as SeverityValue | null) ?? 'NOTSET')}
+          onChange={(nextValue) =>
+            onMinimumLevelChange((nextValue as SeverityValue | null) ?? 'NOTSET')
+          }
           comboboxProps={FILTER_COMBOBOX_PROPS}
         />
       </div>

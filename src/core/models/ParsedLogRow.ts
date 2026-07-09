@@ -4,8 +4,11 @@ export interface ParsedLogRow {
   lineNumber: number;
   timestamp: Date;
   logger: string;
+  source: string;
   level: string;
   message: string;
   sourceFile: string;
   rawLine: string;
+  hadContinuationLines?: boolean;
+  attributes?: Record<string, string>;
 }

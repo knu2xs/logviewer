@@ -26,7 +26,7 @@ export function LogImportSummary({ session, errorMessage }: LogImportSummaryProp
   }
 
   const statusLabel = session.status === 'failed' ? 'failed' : session.status;
-  const continuedRows = session.rows.filter((row) => row.message.includes('\n'));
+  const continuedRows = session.rows.filter((row) => row.hadContinuationLines === true);
 
   return (
     <Stack gap="md">
@@ -39,6 +39,9 @@ export function LogImportSummary({ session, errorMessage }: LogImportSummaryProp
               </Title>
               <Text c="dimmed" size="sm">
                 {session.sourceFileName || 'No file selected yet'}
+              </Text>
+              <Text c="dimmed" size="sm">
+                Source format: {session.sourceFormat}
               </Text>
             </div>
             <Badge variant="light" color={statusLabel === 'failed' ? 'red' : 'blue'}>

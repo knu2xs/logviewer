@@ -10,6 +10,7 @@ export type { LogEntry } from './LogEntry';
 export type { ImportSession, ImportSessionStatus } from './ImportSession';
 export type { ParsedLogRow } from './ParsedLogRow';
 export type { ParseError } from './ParseError';
+export type { SourceFormat } from './SourceFormat';
 export type { FilterState } from './FilterState';
 export { DEFAULT_FILTER_STATE } from './FilterState';
 export type { FilteredResultSummary } from './FilteredResultSummary';

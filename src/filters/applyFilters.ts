@@ -11,19 +11,25 @@ export function applyFilters(
   latestTimestamp = getLatestTimestamp(rows),
 ): ParsedLogRow[] {
   const hasSearch = filterState.searchText.trim() !== '';
-  const hasLoggerFilter = filterState.selectedLoggers.length > 0;
+  const hasSourceFilter = filterState.selectedSources.length > 0;
   const hasSeverityFilter = filterState.minimumLevel !== 'NOTSET';
   const hasTimeFilter = filterState.timeFilter !== 'ALL';
 
-  if (!hasSearch && !hasLoggerFilter && !hasSeverityFilter && !hasTimeFilter) {
+  if (!hasSearch && !hasSourceFilter && !hasSeverityFilter && !hasTimeFilter) {
     return rows;
   }
 
   return filterByMessage(
     filterBySeverity(
       filterByLogger(
-        filterByTime(rows, filterState.timeFilter, latestTimestamp, filterState.customStart, filterState.customEnd),
-        filterState.selectedLoggers,
+        filterByTime(
+          rows,
+          filterState.timeFilter,
+          latestTimestamp,
+          filterState.customStart,
+          filterState.customEnd,
+        ),
+        filterState.selectedSources,
       ),
       filterState.minimumLevel,
     ),

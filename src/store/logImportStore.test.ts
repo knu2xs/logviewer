@@ -15,31 +15,36 @@ describe('useLogImportStore', () => {
   });
 
   it('imports a valid file and stores rows', async () => {
-    await useLogImportStore.getState().importLogFile(
-      createMockFile('2026-07-09 08:15:21 | Portal.Security | ERROR | Unable to validate token'),
-    );
+    await useLogImportStore
+      .getState()
+      .importLogFile(
+        createMockFile('2026-07-09 08:15:21 | Portal.Security | ERROR | Unable to validate token'),
+      );
 
     const state = useLogImportStore.getState();
 
     expect(state.errorMessage).toBeNull();
     expect(state.session?.status).toBe('complete');
     expect(state.session?.sourceFileName).toBe('sample.log');
+    expect(state.session?.sourceFormat).toBe('Python Pipe Delimited');
     expect(state.session?.rows).toHaveLength(1);
     expect(state.session?.errors).toHaveLength(0);
     expect(state.session?.validEntryCount).toBe(1);
   });
 
   it('appends continuation lines without blocking valid rows', async () => {
-    await useLogImportStore.getState().importLogFile(
-      createMockFile(
-        [
-          '2026-07-09 08:15:21 | Portal.Security | ERROR | Unable to validate token',
-          'Failed to execute (AddAttributeRule).',
-          '',
-          '2026-07-09 08:15:22,125 | Portal.Security | INFO | Token validation started',
-        ].join('\n'),
-      ),
-    );
+    await useLogImportStore
+      .getState()
+      .importLogFile(
+        createMockFile(
+          [
+            '2026-07-09 08:15:21 | Portal.Security | ERROR | Unable to validate token',
+            'Failed to execute (AddAttributeRule).',
+            '',
+            '2026-07-09 08:15:22,125 | Portal.Security | INFO | Token validation started',
+          ].join('\n'),
+        ),
+      );
 
     const state = useLogImportStore.getState();
 
@@ -47,7 +52,25 @@ describe('useLogImportStore', () => {
     expect(state.session?.errors).toHaveLength(0);
     expect(state.session?.parseErrorCount).toBe(0);
     expect(state.session?.validEntryCount).toBe(2);
-    expect(state.session?.rows[0]?.message).toBe('Unable to validate token\nFailed to execute (AddAttributeRule).');
+    expect(state.session?.rows[0]?.message).toBe(
+      'Unable to validate token\nFailed to execute (AddAttributeRule).',
+    );
+  });
+
+  it('detects ArcGIS Portal imports and stores the source format', async () => {
+    await useLogImportStore
+      .getState()
+      .importLogFile(
+        createMockFile(
+          '<Msg time="2026-07-08T13:16:10,748" type="INFO" code="217039" source="Portal" process="39264" thread="1" methodName="" machine="ESRI-AKVMBDOUSN.ESRI.COM" user="" elapsed="0.0" requestID="">Log Service started.</Msg>',
+          'portal.log',
+        ),
+      );
+
+    const state = useLogImportStore.getState();
+
+    expect(state.session?.sourceFormat).toBe('ArcGIS Portal');
+    expect(state.session?.rows[0]?.attributes?.source).toBe('Portal');
   });
 
   it('handles empty files as successful empty imports', async () => {
@@ -77,9 +100,11 @@ describe('useLogImportStore', () => {
   });
 
   it('resets the current import session', async () => {
-    await useLogImportStore.getState().importLogFile(
-      createMockFile('2026-07-09 08:15:21 | Portal.Security | ERROR | Unable to validate token'),
-    );
+    await useLogImportStore
+      .getState()
+      .importLogFile(
+        createMockFile('2026-07-09 08:15:21 | Portal.Security | ERROR | Unable to validate token'),
+      );
 
     useLogImportStore.getState().resetImport();
 
