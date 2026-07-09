@@ -6,6 +6,7 @@ import type { ColDef } from 'ag-grid-community';
 
 import type { ImportSession } from '../../core/models/ImportSession';
 import type { ParsedLogRow } from '../../core/models/ParsedLogRow';
+import { SEVERITY_RANK } from '../../core/models/SeverityValue';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -32,6 +33,32 @@ const COLUMN_OPTIONS: ColumnOption[] = [
 
 const DEFAULT_VISIBLE_COLUMNS: ColumnField[] = COLUMN_OPTIONS.map((option) => option.value);
 
+type LevelTone = 'debug' | 'info' | 'warning' | 'error';
+
+function getLevelTone(level: string): LevelTone {
+  const normalized = level.toUpperCase();
+
+  if (normalized === 'DEBUG') {
+    return 'debug';
+  }
+
+  if (normalized === 'INFO') {
+    return 'info';
+  }
+
+  if (normalized === 'WARNING') {
+    return 'warning';
+  }
+
+  const severityRank = SEVERITY_RANK[normalized as keyof typeof SEVERITY_RANK];
+
+  if (typeof severityRank === 'number' && severityRank >= SEVERITY_RANK.ERROR) {
+    return 'error';
+  }
+
+  return 'error';
+}
+
 const columnDefs: Array<ColDef<ParsedLogRow> & { field: ColumnField }> = [
   {
     field: 'timestamp',
@@ -41,7 +68,17 @@ const columnDefs: Array<ColDef<ParsedLogRow> & { field: ColumnField }> = [
     valueFormatter: ({ value }) => (value instanceof Date ? value.toLocaleString() : '—'),
   },
   { field: 'logger', headerName: 'Logger', flex: 0.9, minWidth: 160, valueFormatter: ({ value }) => value || '—' },
-  { field: 'level', headerName: 'Level', width: 120, valueFormatter: ({ value }) => value || '—' },
+  {
+    field: 'level',
+    headerName: 'Level',
+    width: 140,
+    cellRenderer: ({ value }: { value: unknown }) => {
+      const levelLabel = typeof value === 'string' && value.trim() !== '' ? value : '—';
+      const tone = getLevelTone(levelLabel);
+
+      return <span className={`log-level-tag log-level-tag--${tone}`}>{levelLabel}</span>;
+    },
+  },
   {
     field: 'message',
     headerName: 'Message',

@@ -15,24 +15,24 @@
 
 :root {
   /* Color Palette */
-  --color-primary: #0066cc;
-  --color-primary-dark: #0052a3;
-  --color-primary-light: #3385dd;
+  --color-primary: #4f46e5;
+  --color-primary-dark: #4338ca;
+  --color-primary-light: #818cf8;
 
-  --color-secondary: #6c757d;
-  --color-secondary-dark: #5a6268;
-  --color-secondary-light: #868e96;
+  --color-secondary: #413a5a;
+  --color-secondary-dark: #2e2a44;
+  --color-secondary-light: #5f5876;
 
-  --color-success: #28a745;
-  --color-warning: #ffc107;
-  --color-error: #dc3545;
-  --color-info: #17a2b8;
+  --color-success: #0e9f6e;
+  --color-warning: #b7791f;
+  --color-error: #c0392b;
+  --color-info: #4f46e5;
 
-  --color-background: #ffffff;
-  --color-surface: #f8f9fa;
-  --color-text: #212529;
-  --color-text-secondary: #6c757d;
-  --color-border: #dee2e6;
+  --color-background: #f4f6fa;
+  --color-surface: #ffffff;
+  --color-text: #1e1b2e;
+  --color-text-secondary: #413a5a;
+  --color-border: #d9dcee;
 
   /* Spacing */
   --spacing-xs: 0.25rem;
@@ -71,17 +71,6 @@
   --transition-slow: 500ms ease-in-out;
 }
 
-/* Dark mode variants */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: #1e1e1e;
-    --color-surface: #2d2d2d;
-    --color-text: #e0e0e0;
-    --color-text-secondary: #a0a0a0;
-    --color-border: #3d3d3d;
-  }
-}
-
 /* ===========================
    Reset & Normalization
    =========================== */
@@ -112,7 +101,7 @@ body {
 
 a {
   text-decoration: none;
-  color: #464feb;
+  color: var(--color-primary);
 }
 
 table {
@@ -122,11 +111,11 @@ table {
 
 tr th,
 tr td {
-  border: 1px solid #e6e6e6;
+  border: 1px solid var(--color-border);
 }
 
 tr th {
-  background-color: #f5f5f5;
+  background-color: #edf0f9;
 }
 
 /* ===========================
@@ -254,13 +243,13 @@ tr th {
 
 .log-import-hero {
   background:
-    radial-gradient(circle at top right, rgba(70, 79, 235, 0.08), transparent 30%),
+    radial-gradient(circle at top right, rgba(79, 70, 229, 0.12), transparent 32%),
     var(--color-background);
 }
 
 .log-filter-panel {
   background:
-    linear-gradient(180deg, rgba(70, 79, 235, 0.04), rgba(70, 79, 235, 0)),
+    linear-gradient(180deg, rgba(79, 70, 229, 0.07), rgba(79, 70, 229, 0)),
     var(--color-background);
 }
 
@@ -323,6 +312,44 @@ tr th {
 
 .log-import-column-visibility-options {
   row-gap: var(--spacing-xs);
+}
+
+.log-level-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 74px;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.log-level-tag--debug {
+  color: #1d4ed8;
+  background-color: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.log-level-tag--info {
+  color: #166534;
+  background-color: #dcfce7;
+  border-color: #86efac;
+}
+
+.log-level-tag--warning {
+  color: #92400e;
+  background-color: #fef3c7;
+  border-color: #fcd34d;
+}
+
+.log-level-tag--error {
+  color: #b91c1c;
+  background-color: #fee2e2;
+  border-color: #fca5a5;
 }
 
 /* ===========================
