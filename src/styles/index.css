@@ -245,6 +245,45 @@ tr th {
 }
 
 /* ===========================
+   Log Import
+   =========================== */
+
+.log-import-page {
+  width: 100%;
+}
+
+.log-import-hero {
+  background:
+    radial-gradient(circle at top right, rgba(70, 79, 235, 0.08), transparent 30%),
+    var(--color-background);
+}
+
+.log-import-actions {
+  flex-wrap: wrap;
+}
+
+.log-import-file-picker {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  color: var(--color-text);
+}
+
+.log-import-file-picker-label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.log-import-file-picker input[type='file'] {
+  max-width: 100%;
+}
+
+.log-import-grid {
+  height: 420px;
+  width: 100%;
+}
+
+/* ===========================
    Button Component Base Styles
    =========================== */
 

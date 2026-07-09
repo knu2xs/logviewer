@@ -1,61 +1,69 @@
-/**
- * HomePage Component
- *
- * The default landing page of the application.
- * Serves as the entry point for users and provides access to
- * the main features and functionality.
- *
- * This page composes the AppShell layout with the home page content.
- * Future features like log loading, searching, and filtering
- * will be integrated here.
- */
-
 import React from 'react';
-import { useAppStore } from '../store/appStore';
+import { Alert, Button, Group, Paper, Stack, Text, Title } from '@mantine/core';
 
-/**
- * HomePage - Main application landing page
- *
- * Displays a welcome screen with options to:
- * - Load log files
- * - Access recent logs
- * - Access application settings
- *
- * This is a placeholder implementation demonstrating the basic structure.
- * Future iterations will add actual functionality and styling.
- */
+import { LogImportResultsGrid } from '../components/log-import/LogImportResultsGrid';
+import { LogImportSummary } from '../components/log-import/LogImportSummary';
+import { useLogImportStore } from '../store/logImportStore';
+
 export const HomePage: React.FC = () => {
-  const appName = useAppStore((state) => state.appName);
+  const session = useLogImportStore((state) => state.session);
+  const errorMessage = useLogImportStore((state) => state.errorMessage);
+  const importLogFile = useLogImportStore((state) => state.importLogFile);
+  const resetImport = useLogImportStore((state) => state.resetImport);
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    await importLogFile(file);
+    event.target.value = '';
+  };
+
+  const isImporting = session?.status === 'importing';
 
   return (
-    <div className="home-page">
-      <div className="home-page-content">
-        <h2>Welcome to Log Viewer</h2>
+    <Stack gap="lg" className="log-import-page">
+      <Paper withBorder radius="lg" p="xl" className="log-import-hero">
+        <Stack gap="md">
+          <div>
+            <Title order={2}>Import a log file</Title>
+            <Text c="dimmed" mt="xs">
+              Open a local log file to inspect parsed rows, malformed lines, and import metadata in
+              one place.
+            </Text>
+          </div>
 
-        <p>{appName} is a powerful application for viewing, searching, and analyzing log files.</p>
+          <Group align="flex-end" gap="md" className="log-import-actions">
+            <label className="log-import-file-picker">
+              <span className="log-import-file-picker-label">Select file</span>
+              <input
+                aria-label="Open Log File"
+                type="file"
+                accept=".log,.txt,text/plain"
+                onChange={handleFileChange}
+                disabled={isImporting}
+              />
+            </label>
 
-        <section className="home-section">
-          <h3>Getting Started</h3>
-          <ul>
-            <li>Load a log file to begin analyzing logs</li>
-            <li>Use search and filter features to find specific entries</li>
-            <li>View statistics and trends in your log data</li>
-          </ul>
-        </section>
+            <Button onClick={resetImport} variant="light" disabled={!session && !errorMessage}>
+              Clear results
+            </Button>
+          </Group>
 
-        <section className="home-section">
-          <h3>Supported Formats</h3>
-          <p>
-            Log Viewer supports various log formats including JSON, plain text, and structured logs.
-          </p>
-        </section>
+          {errorMessage ? (
+            <Alert color="red" title="Import failed">
+              {errorMessage}
+            </Alert>
+          ) : null}
+        </Stack>
+      </Paper>
 
-        <div className="home-actions">
-          <button className="btn btn-primary">Load Log File</button>
-          <button className="btn btn-secondary">View Recent Logs</button>
-        </div>
-      </div>
-    </div>
+      <LogImportSummary session={session} errorMessage={errorMessage} />
+      <LogImportResultsGrid session={session} />
+    </Stack>
   );
 };
 

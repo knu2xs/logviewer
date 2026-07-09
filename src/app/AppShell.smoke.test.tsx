@@ -16,6 +16,6 @@ describe('App shell smoke test', () => {
     expect(html).toContain('<main');
     expect(html).toContain('<footer');
     expect(html).toContain('Log Viewer');
-    expect(html).toContain('Welcome to Log Viewer');
+    expect(html).toContain('Import a log file');
   });
 });

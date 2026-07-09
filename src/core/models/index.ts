@@ -7,3 +7,6 @@
  */
 
 export type { LogEntry } from './LogEntry';
+export type { ImportSession, ImportSessionStatus } from './ImportSession';
+export type { ParsedLogRow } from './ParsedLogRow';
+export type { ParseError } from './ParseError';
