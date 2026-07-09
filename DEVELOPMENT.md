@@ -25,6 +25,7 @@
 - Add parsing contracts in `src/core/parsers`.
 - Add state in `src/store` when multiple components need access.
 - Add page-level UI in `src/pages` and reusable shell UI in `src/app`.
+- Record major architecture decisions in `docs/adr` before implementing them.
 
 ## Build Notes
 

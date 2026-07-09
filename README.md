@@ -29,6 +29,11 @@ The application uses a layered structure:
 - `src/store` for shared application state with Zustand.
 - `src/core/models` and `src/core/parsers` for domain contracts.
 - `src/styles` for global styling and theme tokens.
+- `docs/adr` for architecture decisions that should remain stable over time.
+
+## Roadmap
+
+The next feature slice is `002-log-import`, which will add file selection, line parsing, and a grid-based display for parsed log entries. Search and filtering remain out of scope for that slice. The associated ADR is [docs/adr/0002-log-import-and-viewing.md](docs/adr/0002-log-import-and-viewing.md).
 
 ## Validation Notes
 

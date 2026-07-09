@@ -220,6 +220,11 @@ src/
 └── tests/               # Test utilities and fixtures
 ```
 
+```text
+docs/
+└── adr/                  # Architecture Decision Records for major design choices
+```
+
 ### Directory Structure and Responsibilities
 
 #### `src/app/`
@@ -354,3 +359,7 @@ This foundation enables:
 - Adding new pages without modifying existing code
 - Integrating new domain models into the core/models directory
 - Adding parser implementations to core/parsers directory
+
+### Next Spec Direction
+
+The next feature spec should be `002-log-import`. It should introduce file selection, line parsing, and display of parsed log entries in a grid, while intentionally deferring search and filtering until a later story.
