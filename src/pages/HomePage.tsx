@@ -4,7 +4,6 @@ import { useDebouncedValue } from '@mantine/hooks';
 
 import { LogImportResultsGrid } from '../components/log-import/LogImportResultsGrid';
 import { LogImportSummary } from '../components/log-import/LogImportSummary';
-import { FilteredResultsEmptyState } from '../components/log-filter/FilteredResultsEmptyState';
 import { FilteredResultsSummary } from '../components/log-filter/FilteredResultsSummary';
 import { LogFilterToolbar } from '../components/log-filter/LogFilterToolbar';
 import type { FilteredResultSummary } from '../core/models';
@@ -77,6 +76,11 @@ export const HomePage: React.FC = () => {
     }),
     [filteredRows.length, hasActiveFilters, latestTimestamp, totalRowCount],
   );
+  const selectedFileName = session?.sourceFileName ?? 'No file selected';
+  const emptyStateMessage =
+    hasActiveFilters && totalRowCount > 0
+      ? 'No log entries match the current filters. Adjust filters above or clear all filters to continue.'
+      : 'The import completed but no valid rows were found.';
 
   return (
     <Stack gap="lg" className="log-import-page">
@@ -91,15 +95,25 @@ export const HomePage: React.FC = () => {
           </div>
 
           <Group align="flex-end" gap="md" className="log-import-actions">
-            <label className="log-import-file-picker">
-              <span className="log-import-file-picker-label">Select file</span>
+            <label className={`log-import-file-picker${isImporting ? ' is-disabled' : ''}`}>
               <input
+                className="log-import-file-input"
                 aria-label="Open Log File"
                 type="file"
                 accept=".log,.txt,text/plain"
                 onChange={handleFileChange}
                 disabled={isImporting}
               />
+              <Button component="span" variant="light" disabled={isImporting}>
+                Choose File
+              </Button>
+              <Text
+                size="sm"
+                c={session?.sourceFileName ? undefined : 'dimmed'}
+                className="log-import-file-name"
+              >
+                {selectedFileName}
+              </Text>
             </label>
 
             <Button onClick={resetImport} variant="light" disabled={!session && !errorMessage}>
@@ -117,30 +131,33 @@ export const HomePage: React.FC = () => {
 
       <LogImportSummary session={session} errorMessage={errorMessage} />
 
-      {session?.status === 'complete' ? (
-        <Paper withBorder radius="lg" p="xl" className="log-filter-panel">
-          <LogFilterToolbar
-            filters={filters}
-            loggerOptions={loggerOptions}
-            customRangeDraftStart={customRangeDraftStart}
-            customRangeDraftEnd={customRangeDraftEnd}
-            customRangeError={customRangeError}
-            onSearchTextChange={setSearchText}
-            onClearSearch={clearSearchText}
-            onSelectedLoggersChange={setSelectedLoggers}
-            onMinimumLevelChange={setMinimumLevel}
-            onTimeFilterChange={setTimeFilter}
-            onCustomRangeChange={setCustomRange}
-          />
-          <FilteredResultsSummary summary={filteredSummary} onClearFilters={resetFilters} />
-        </Paper>
-      ) : null}
-
-      {filteredSummary.isEmptyResult ? (
-        <FilteredResultsEmptyState totalCount={totalRowCount} onClearFilters={resetFilters} />
-      ) : (
-        <LogImportResultsGrid session={session} rows={filteredRows} />
-      )}
+      <LogImportResultsGrid
+        session={session}
+        rows={filteredRows}
+        emptyStateMessage={emptyStateMessage}
+        filterControls={
+          session?.status === 'complete' ? (
+            <LogFilterToolbar
+              filters={filters}
+              loggerOptions={loggerOptions}
+              customRangeDraftStart={customRangeDraftStart}
+              customRangeDraftEnd={customRangeDraftEnd}
+              customRangeError={customRangeError}
+              onSearchTextChange={setSearchText}
+              onClearSearch={clearSearchText}
+              onSelectedLoggersChange={setSelectedLoggers}
+              onMinimumLevelChange={setMinimumLevel}
+              onTimeFilterChange={setTimeFilter}
+              onCustomRangeChange={setCustomRange}
+            />
+          ) : null
+        }
+        summaryContent={
+          session?.status === 'complete' ? (
+            <FilteredResultsSummary summary={filteredSummary} onClearFilters={resetFilters} />
+          ) : null
+        }
+      />
     </Stack>
   );
 };

@@ -118,11 +118,11 @@ export function LogImportSummary({ session, errorMessage }: LogImportSummaryProp
         <Card withBorder radius="md" padding="lg">
           <Stack gap="xs">
             <Title order={4} size="h5">
-              Continued messages
+              Parsing Messages
             </Title>
             <Text c="dimmed" size="sm">
-              These entries were wrapped across multiple raw log lines and have been merged back
-              into a single message.
+              Parsing checks and normalization notes are summarized here, including wrapped entries
+              merged back into a single message.
             </Text>
             <List spacing="xs" size="sm">
               {continuedRows.map((row) => (

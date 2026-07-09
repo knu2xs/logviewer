@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
-import { Button, Card, Checkbox, Group, Stack, Text, Title } from '@mantine/core';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Button, Card, Checkbox, Group, Modal, Stack, Text, Title } from '@mantine/core';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
-import type { ColDef } from 'ag-grid-community';
+import type { ColDef, RowClickedEvent } from 'ag-grid-community';
 
 import type { ImportSession } from '../../core/models/ImportSession';
 import type { ParsedLogRow } from '../../core/models/ParsedLogRow';
@@ -14,6 +14,8 @@ interface LogImportResultsGridProps {
   session: ImportSession | null;
   rows?: ParsedLogRow[];
   emptyStateMessage?: string;
+  filterControls?: ReactNode;
+  summaryContent?: ReactNode;
 }
 
 type ColumnField = 'timestamp' | 'logger' | 'level' | 'message' | 'sourceFile';
@@ -89,16 +91,45 @@ const columnDefs: Array<ColDef<ParsedLogRow> & { field: ColumnField }> = [
   { field: 'sourceFile', headerName: 'Source File', flex: 1, minWidth: 180 },
 ];
 
-export function LogImportResultsGrid({ session, rows, emptyStateMessage }: LogImportResultsGridProps) {
+export function LogImportResultsGrid({
+  session,
+  rows,
+  emptyStateMessage,
+  filterControls,
+  summaryContent,
+}: LogImportResultsGridProps) {
   const [visibleColumns, setVisibleColumns] = useState<ColumnField[]>(DEFAULT_VISIBLE_COLUMNS);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [selectedRow, setSelectedRow] = useState<ParsedLogRow | null>(null);
   const hasHiddenColumns = visibleColumns.length !== COLUMN_OPTIONS.length;
+
+  useEffect(() => {
+    if (!isExpanded) {
+      return;
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsExpanded(false);
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isExpanded]);
 
   if (!session) {
     return (
       <Card withBorder radius="md" padding="lg">
         <Stack gap="xs">
           <Title order={3} size="h4">
-            Parsed rows
+            Parsed Logfile
           </Title>
           <Text c="dimmed">Open a log file to see parsed rows here.</Text>
         </Stack>
@@ -111,7 +142,7 @@ export function LogImportResultsGrid({ session, rows, emptyStateMessage }: LogIm
       <Card withBorder radius="md" padding="lg">
         <Stack gap="xs">
           <Title order={3} size="h4">
-            Parsed rows
+            Parsed Logfile
           </Title>
           <Text c="dimmed">Importing the selected file...</Text>
         </Stack>
@@ -141,69 +172,140 @@ export function LogImportResultsGrid({ session, rows, emptyStateMessage }: LogIm
     setVisibleColumns(DEFAULT_VISIBLE_COLUMNS);
   };
 
-  if (rowData.length === 0) {
-    return (
-      <Card withBorder radius="md" padding="lg">
-        <Stack gap="xs">
-          <Title order={3} size="h4">
-            Parsed rows
-          </Title>
-          <Text c="dimmed">{emptyStateMessage ?? 'The import completed but no valid rows were found.'}</Text>
-        </Stack>
-      </Card>
-    );
-  }
+  const hasRows = rowData.length > 0;
+  const closeRowDetails = () => setSelectedRow(null);
+
+  const handleRowClick = (event: RowClickedEvent<ParsedLogRow>) => {
+    if (event.data) {
+      setSelectedRow(event.data);
+    }
+  };
 
   return (
-    <Card withBorder radius="md" padding="lg">
+    <Card
+      withBorder
+      radius="md"
+      padding="lg"
+      className={isExpanded ? 'log-import-results-card log-import-results-card--expanded' : 'log-import-results-card'}
+    >
       <Stack gap="sm">
-        <div>
-          <Title order={3} size="h4">
-            Parsed rows
-          </Title>
-          <Text c="dimmed">Rows are virtualized for large files.</Text>
-        </div>
+        <Group justify="space-between" align="flex-start">
+          <div>
+            <Title order={3} size="h4">
+              Parsed Logfile
+            </Title>
+          </div>
+          <Button
+            size="xs"
+            variant="light"
+            onClick={() => setIsExpanded((current) => !current)}
+            aria-label={isExpanded ? 'Minimize parsed rows panel' : 'Maximize parsed rows panel'}
+          >
+            {isExpanded ? 'Minimize' : 'Maximize'}
+          </Button>
+        </Group>
 
-        <Stack gap={6} className="log-import-column-visibility">
-          <Group justify="space-between" align="center">
-            <Text fw={600} size="sm">
-              Visible columns
-            </Text>
-            <Button
-              size="xs"
-              variant="light"
-              onClick={resetColumns}
-              disabled={!hasHiddenColumns}
-              aria-label="Reset columns"
-            >
-              Reset columns
-            </Button>
-          </Group>
-          <Group gap="md" className="log-import-column-visibility-options">
-            {COLUMN_OPTIONS.map((option) => (
-              <Checkbox
-                key={option.value}
-                label={option.label}
-                checked={visibleColumns.includes(option.value)}
-                onChange={() => toggleColumn(option.value)}
-                aria-label={`Toggle ${option.label} column`}
-              />
-            ))}
-          </Group>
-        </Stack>
+        {summaryContent ? <div className="log-import-inline-summary">{summaryContent}</div> : null}
 
-        <div className="log-import-grid">
-          <AgGridReact<ParsedLogRow>
-            rowData={rowData}
-            columnDefs={displayedColumnDefs}
-            domLayout="normal"
-            defaultColDef={{ sortable: true, resizable: true }}
-            theme={themeQuartz}
-            suppressCellFocus
-            animateRows={false}
-          />
-        </div>
+        {filterControls ? <div className="log-import-inline-filters">{filterControls}</div> : null}
+
+        {hasRows ? (
+          <Stack gap={6} className="log-import-column-visibility">
+            <Group justify="space-between" align="center">
+              <Text fw={600} size="sm">
+                Visible columns
+              </Text>
+              <Button
+                size="xs"
+                variant="light"
+                onClick={resetColumns}
+                disabled={!hasHiddenColumns}
+                aria-label="Reset columns"
+              >
+                Reset columns
+              </Button>
+            </Group>
+            <Group gap="md" className="log-import-column-visibility-options">
+              {COLUMN_OPTIONS.map((option) => (
+                <Checkbox
+                  key={option.value}
+                  label={option.label}
+                  checked={visibleColumns.includes(option.value)}
+                  onChange={() => toggleColumn(option.value)}
+                  aria-label={`Toggle ${option.label} column`}
+                />
+              ))}
+            </Group>
+          </Stack>
+        ) : null}
+
+        {hasRows ? (
+          <div className={isExpanded ? 'log-import-grid log-import-grid--expanded' : 'log-import-grid'}>
+            <AgGridReact<ParsedLogRow>
+              rowData={rowData}
+              columnDefs={displayedColumnDefs}
+              domLayout="normal"
+              defaultColDef={{ sortable: true, resizable: true }}
+              onRowClicked={handleRowClick}
+              theme={themeQuartz}
+              suppressCellFocus
+              animateRows={false}
+            />
+          </div>
+        ) : (
+          <Text c="dimmed">{emptyStateMessage ?? 'The import completed but no valid rows were found.'}</Text>
+        )}
       </Stack>
+
+      <Modal
+        opened={selectedRow !== null}
+        onClose={closeRowDetails}
+        title="Log Entry Details"
+        centered
+        size="xl"
+        zIndex={3000}
+      >
+        {selectedRow ? (
+          <Stack gap="sm" className="log-entry-modal-content">
+            <Text>
+              <Text component="span" fw={700}>
+                Timestamp:{' '}
+              </Text>
+              {selectedRow.timestamp.toLocaleString()}
+            </Text>
+            <Text>
+              <Text component="span" fw={700}>
+                Logger:{' '}
+              </Text>
+              {selectedRow.logger || '—'}
+            </Text>
+            <Text>
+              <Text component="span" fw={700}>
+                Level:{' '}
+              </Text>
+              {selectedRow.level || '—'}
+            </Text>
+            <Text>
+              <Text component="span" fw={700}>
+                Source File:{' '}
+              </Text>
+              {selectedRow.sourceFile}
+            </Text>
+            <Text>
+              <Text component="span" fw={700}>
+                Source Line:{' '}
+              </Text>
+              {selectedRow.lineNumber}
+            </Text>
+            <div className="log-entry-modal-message">
+              <Text fw={700} mb={4}>
+                Message
+              </Text>
+              <Text className="log-entry-modal-message-text">{selectedRow.message || '(blank line)'}</Text>
+            </div>
+          </Stack>
+        ) : null}
+      </Modal>
     </Card>
   );
 }

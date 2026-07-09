@@ -2,6 +2,10 @@ import { Group, Select, Text, TextInput } from '@mantine/core';
 
 import type { TimeFilter } from '../../core/models';
 
+const FILTER_COMBOBOX_PROPS = {
+  zIndex: 2000,
+};
+
 const TIME_FILTER_OPTIONS: Array<{ label: string; value: TimeFilter }> = [
   { label: 'All Entries', value: 'ALL' },
   { label: 'Last 5 Minutes', value: 'LAST_5_MINUTES' },
@@ -68,6 +72,7 @@ export function LogTimeFilter({
         value={value}
         data={TIME_FILTER_OPTIONS}
         onChange={(nextValue) => onTimeFilterChange((nextValue as TimeFilter | null) ?? 'ALL')}
+        comboboxProps={FILTER_COMBOBOX_PROPS}
         w={220}
       />
 

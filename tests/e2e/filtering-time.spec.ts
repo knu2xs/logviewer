@@ -13,12 +13,12 @@ test('custom range validation preserves the last valid filtered result', async (
 
   await page.getByLabel('Start date/time').fill('2026-07-09T14:00');
   await page.getByLabel('End date/time').fill('2026-07-09T14:20');
-  await page.getByRole('heading', { name: 'Parsed rows' }).click();
+  await page.getByRole('heading', { name: 'Parsed Logfile' }).click();
 
   await expect(page.getByText('Showing 2 of 4 entries')).toBeVisible();
 
   await page.getByLabel('Start date/time').fill('2026-07-09T15:30');
-  await page.getByRole('heading', { name: 'Parsed rows' }).click();
+  await page.getByRole('heading', { name: 'Parsed Logfile' }).click();
 
   await expect(page.getByText('Start date/time must be before end date/time.')).toHaveCount(2);
   await expect(page.getByText('Showing 2 of 4 entries')).toBeVisible();

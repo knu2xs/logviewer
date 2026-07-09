@@ -14,9 +14,9 @@ test('empty results state recovers by clearing filters without re-import', async
   await page.getByLabel('Search messages').fill('no-matches-here');
 
   await expect(page.getByText('Showing 0 of 4 entries')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'No results for current filters' })).toBeVisible();
+  await expect(page.getByText('No log entries match the current filters.')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Clear all filters from empty state' }).click();
+  await page.getByRole('button', { name: 'Clear all filters' }).click();
 
   await expect(page.getByText('Showing 4 of 4 entries')).toBeVisible();
   await expect(page.getByRole('gridcell', { name: 'Portal.Security' }).first()).toBeVisible();

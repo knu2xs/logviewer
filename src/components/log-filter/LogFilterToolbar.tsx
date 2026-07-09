@@ -3,6 +3,10 @@ import { ActionIcon, MultiSelect, Select, Stack, TextInput } from '@mantine/core
 import type { FilterState, SeverityValue } from '../../core/models';
 import { LogTimeFilter } from './LogTimeFilter';
 
+const FILTER_COMBOBOX_PROPS = {
+  zIndex: 2000,
+};
+
 const SEVERITY_OPTIONS: Array<{ label: string; value: SeverityValue }> = [
   { label: 'NOTSET', value: 'NOTSET' },
   { label: 'DEBUG', value: 'DEBUG' },
@@ -73,6 +77,7 @@ export function LogFilterToolbar({
           data={loggerOptions}
           value={filters.selectedLoggers}
           onChange={onSelectedLoggersChange}
+          comboboxProps={FILTER_COMBOBOX_PROPS}
           clearable
           searchable
         />
@@ -82,6 +87,7 @@ export function LogFilterToolbar({
           data={SEVERITY_OPTIONS}
           value={filters.minimumLevel}
           onChange={(nextValue) => onMinimumLevelChange((nextValue as SeverityValue | null) ?? 'NOTSET')}
+          comboboxProps={FILTER_COMBOBOX_PROPS}
         />
       </div>
     </Stack>

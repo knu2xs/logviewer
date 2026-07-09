@@ -24,6 +24,6 @@ describe('HomePage', () => {
     expect(html).toContain('Open a local log file to inspect parsed rows');
     expect(html).toContain('Open Log File');
     expect(html).toContain('Import summary');
-    expect(html).toContain('Parsed rows');
+    expect(html).toContain('Parsed Logfile');
   });
 });

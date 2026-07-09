@@ -13,10 +13,10 @@ test('log import workflow', async ({ page }) => {
 
   await page.getByLabel('Open Log File').setInputFiles(fixturePath);
 
-  await expect(page.getByText('python_cookiecutter_format.log')).toBeVisible();
+  await expect(page.locator('.log-import-file-name')).toHaveText('python_cookiecutter_format.log');
   await expect(page.getByText('Valid rows').locator('..')).toContainText('3613');
   await expect(page.getByText('Total lines').locator('..')).toContainText(String(expectedLineCount));
-  await expect(page.getByRole('heading', { name: 'Continued messages' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Parsing Messages' })).toBeVisible();
   await expect(page.getByText('Failed to execute (AddAttributeRule).')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Parse errors' })).toHaveCount(0);
   await expect(page.getByRole('columnheader', { name: 'Source File' })).toBeVisible();
