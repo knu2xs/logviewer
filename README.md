@@ -1,77 +1,44 @@
-# React + TypeScript + Vite
+# Log Viewer Foundation
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Log Viewer is a TypeScript + React application foundation for inspecting log files, rendering a consistent app shell, and providing the domain types and tooling needed for future feature work.
 
-Currently, two official plugins are available:
+## Getting Started
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
-
-Note: This will impact Vite dev & build performances.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Available Scripts
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- `npm run dev` starts the Vite development server.
+- `npm run build` creates an optimized production build in `dist/`.
+- `npm run preview` serves the production build locally.
+- `npm run lint` runs ESLint across the repository.
+- `npm run format` formats the repository with Prettier.
+- `npm run test` runs the Vitest unit suite.
+- `npm run test:ui` opens the Vitest UI.
+- `npm run test:e2e` runs the Playwright browser suite.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Architecture
 
-```
+The application uses a layered structure:
+
+- `src/app` for root layout components such as `AppShell`.
+- `src/pages` for page-level screens such as `HomePage`.
+- `src/store` for shared application state with Zustand.
+- `src/core/models` and `src/core/parsers` for domain contracts.
+- `src/styles` for global styling and theme tokens.
+
+## Validation Notes
+
+- Vite provides fast reloads during development and an optimized production build.
+- The production build is tree-shaken and minified by default.
+- Playwright browsers must be installed with `npx playwright install` before running E2E tests on a fresh machine.
+- Browser validation confirms the shell layout renders in both the development and preview servers.
+
+## Testing
+
+- Unit tests live alongside source files or under `tests/unit`.
+- E2E tests live under `tests/e2e`.
+- Use `npm run test` for unit-level feedback and `npm run test:e2e` for browser coverage.
