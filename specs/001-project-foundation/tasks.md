@@ -377,10 +377,10 @@ description: 'Implementation tasks for Project Foundation feature'
 
 ### Git & Version Control
 
-- [ ] T147 [P] Verify all files added to git (check git status is clean)
-- [ ] T148 [P] Verify branch is 001-project-foundation
-- [ ] T149 Commit all work with descriptive message
-- [ ] T150 [P] Verify git history is clean and logical
+- [x] T147 [P] Verify all files added to git (check git status is clean)
+- [x] T148 [P] Verify branch is 001-project-foundation
+- [x] T149 Commit all work with descriptive message
+- [x] T150 [P] Verify git history is clean and logical
 
 ---
 
