@@ -1,4 +1,5 @@
-import { Card, Stack, Text, Title } from '@mantine/core';
+import { useMemo, useState } from 'react';
+import { Button, Card, Checkbox, Group, Stack, Text, Title } from '@mantine/core';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 import type { ColDef } from 'ag-grid-community';
@@ -14,7 +15,24 @@ interface LogImportResultsGridProps {
   emptyStateMessage?: string;
 }
 
-const columnDefs: ColDef<ParsedLogRow>[] = [
+type ColumnField = 'timestamp' | 'logger' | 'level' | 'message' | 'sourceFile';
+
+interface ColumnOption {
+  label: string;
+  value: ColumnField;
+}
+
+const COLUMN_OPTIONS: ColumnOption[] = [
+  { label: 'Timestamp', value: 'timestamp' },
+  { label: 'Logger', value: 'logger' },
+  { label: 'Level', value: 'level' },
+  { label: 'Message', value: 'message' },
+  { label: 'Source File', value: 'sourceFile' },
+];
+
+const DEFAULT_VISIBLE_COLUMNS: ColumnField[] = COLUMN_OPTIONS.map((option) => option.value);
+
+const columnDefs: Array<ColDef<ParsedLogRow> & { field: ColumnField }> = [
   {
     field: 'timestamp',
     headerName: 'Timestamp',
@@ -35,6 +53,9 @@ const columnDefs: ColDef<ParsedLogRow>[] = [
 ];
 
 export function LogImportResultsGrid({ session, rows, emptyStateMessage }: LogImportResultsGridProps) {
+  const [visibleColumns, setVisibleColumns] = useState<ColumnField[]>(DEFAULT_VISIBLE_COLUMNS);
+  const hasHiddenColumns = visibleColumns.length !== COLUMN_OPTIONS.length;
+
   if (!session) {
     return (
       <Card withBorder radius="md" padding="lg">
@@ -62,6 +83,26 @@ export function LogImportResultsGrid({ session, rows, emptyStateMessage }: LogIm
   }
 
   const rowData = rows ?? session.rows;
+  const displayedColumnDefs = useMemo(
+    () =>
+      columnDefs.map((column) => ({
+        ...column,
+        hide: !visibleColumns.includes(column.field),
+      })),
+    [visibleColumns],
+  );
+
+  const toggleColumn = (columnValue: ColumnField) => {
+    setVisibleColumns((current) =>
+      current.includes(columnValue)
+        ? current.filter((value) => value !== columnValue)
+        : [...current, columnValue],
+    );
+  };
+
+  const resetColumns = () => {
+    setVisibleColumns(DEFAULT_VISIBLE_COLUMNS);
+  };
 
   if (rowData.length === 0) {
     return (
@@ -86,10 +127,38 @@ export function LogImportResultsGrid({ session, rows, emptyStateMessage }: LogIm
           <Text c="dimmed">Rows are virtualized for large files.</Text>
         </div>
 
+        <Stack gap={6} className="log-import-column-visibility">
+          <Group justify="space-between" align="center">
+            <Text fw={600} size="sm">
+              Visible columns
+            </Text>
+            <Button
+              size="xs"
+              variant="light"
+              onClick={resetColumns}
+              disabled={!hasHiddenColumns}
+              aria-label="Reset columns"
+            >
+              Reset columns
+            </Button>
+          </Group>
+          <Group gap="md" className="log-import-column-visibility-options">
+            {COLUMN_OPTIONS.map((option) => (
+              <Checkbox
+                key={option.value}
+                label={option.label}
+                checked={visibleColumns.includes(option.value)}
+                onChange={() => toggleColumn(option.value)}
+                aria-label={`Toggle ${option.label} column`}
+              />
+            ))}
+          </Group>
+        </Stack>
+
         <div className="log-import-grid">
           <AgGridReact<ParsedLogRow>
             rowData={rowData}
-            columnDefs={columnDefs}
+            columnDefs={displayedColumnDefs}
             domLayout="normal"
             defaultColDef={{ sortable: true, resizable: true }}
             theme={themeQuartz}

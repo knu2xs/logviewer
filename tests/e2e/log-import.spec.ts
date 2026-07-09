@@ -19,6 +19,14 @@ test('log import workflow', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Continued messages' })).toBeVisible();
   await expect(page.getByText('Failed to execute (AddAttributeRule).')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Parse errors' })).toHaveCount(0);
+  await expect(page.getByRole('columnheader', { name: 'Source File' })).toBeVisible();
+
+  await page.getByRole('checkbox', { name: 'Toggle Source File column' }).uncheck();
+  await expect(page.getByRole('columnheader', { name: 'Source File' })).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Reset columns' }).click();
+  await expect(page.getByRole('columnheader', { name: 'Source File' })).toBeVisible();
+
   await expect(page.getByRole('gridcell', { name: 'everett_attributerules' }).first()).toBeVisible();
   await expect(page.getByRole('gridcell', { name: 'Starting everett-attributerules attribute rules application.' }).first()).toBeVisible();
 });
