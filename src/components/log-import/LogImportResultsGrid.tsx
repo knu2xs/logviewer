@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Button, Card, Checkbox, Group, Modal, Stack, Text, Title } from '@mantine/core';
+import { Button, Card, Group, Modal, Stack, Text, Title } from '@mantine/core';
 import { AllCommunityModule, ModuleRegistry, themeQuartz } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 import type { ColDef, RowClickedEvent } from 'ag-grid-community';
@@ -20,41 +20,37 @@ interface LogImportResultsGridProps {
 }
 
 type ColumnField = 'timestamp' | 'logger' | 'source' | 'level' | 'message';
+const COLUMN_FIELDS: ColumnField[] = ['timestamp', 'logger', 'source', 'level', 'message'];
 
-interface ColumnOption {
-  label: string;
-  value: ColumnField;
-}
-
-const COLUMN_OPTIONS: ColumnOption[] = [
-  { label: 'Timestamp', value: 'timestamp' },
-  { label: 'Logger', value: 'logger' },
-  { label: 'Source', value: 'source' },
-  { label: 'Level', value: 'level' },
-  { label: 'Message', value: 'message' },
-];
-
-const DEFAULT_VISIBLE_COLUMNS: ColumnField[] = COLUMN_OPTIONS.map((option) => option.value);
-
-function getColumnOptionsForFormat(sourceFormat: SourceFormat | null | undefined): ColumnOption[] {
+function getColumnFieldsForFormat(sourceFormat: SourceFormat | null | undefined): ColumnField[] {
   if (sourceFormat === 'Python Pipe Delimited') {
-    return COLUMN_OPTIONS.filter((option) => option.value !== 'source');
+    return COLUMN_FIELDS.filter((field) => field !== 'source');
   }
 
   if (sourceFormat === 'ArcGIS Portal' || sourceFormat === 'ArcGIS Server') {
-    return COLUMN_OPTIONS.filter((option) => option.value !== 'logger');
+    return COLUMN_FIELDS.filter((field) => field !== 'logger');
   }
 
-  return COLUMN_OPTIONS;
+  return COLUMN_FIELDS;
 }
 
-type LevelTone = 'debug' | 'info' | 'warning' | 'error';
+type LevelTone = 'debug' | 'config' | 'info' | 'warning' | 'error';
 
 function getLevelTone(level: string): LevelTone {
   const normalized = level.toUpperCase();
 
-  if (normalized === 'DEBUG' || normalized === 'VERBOSE' || normalized === 'FINE') {
+  if (
+    normalized === 'DEBUG' ||
+    normalized === 'VERBOSE' ||
+    normalized === 'FINEST' ||
+    normalized === 'FINER' ||
+    normalized === 'FINE'
+  ) {
     return 'debug';
+  }
+
+  if (normalized === 'CONFIG') {
+    return 'config';
   }
 
   if (normalized === 'INFO') {
@@ -123,43 +119,24 @@ export function LogImportResultsGrid({
   filterControls,
   summaryContent,
 }: LogImportResultsGridProps) {
-  const [visibleColumns, setVisibleColumns] = useState<ColumnField[]>(DEFAULT_VISIBLE_COLUMNS);
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedRow, setSelectedRow] = useState<ParsedLogRow | null>(null);
-  const columnOptions = useMemo(
-    () => getColumnOptionsForFormat(session?.sourceFormat),
+  const allowedColumnFields = useMemo(
+    () => getColumnFieldsForFormat(session?.sourceFormat),
     [session?.sourceFormat],
   );
-  const allowedColumnValues = useMemo(
-    () => new Set(columnOptions.map((option) => option.value)),
-    [columnOptions],
-  );
-  const defaultVisibleColumns = useMemo(
-    () => columnOptions.map((option) => option.value),
-    [columnOptions],
-  );
+  const allowedColumnValues = useMemo(() => new Set(allowedColumnFields), [allowedColumnFields]);
   const rowData = rows ?? session?.rows ?? [];
   const showSourceField = session?.sourceFormat !== 'Python Pipe Delimited';
   const showLoggerField =
     session?.sourceFormat !== 'ArcGIS Portal' && session?.sourceFormat !== 'ArcGIS Server';
-  const effectiveVisibleColumns = useMemo(() => {
-    const normalized = visibleColumns.filter((column) => allowedColumnValues.has(column));
-
-    if (normalized.length === 0) {
-      return defaultVisibleColumns;
-    }
-
-    return normalized;
-  }, [allowedColumnValues, defaultVisibleColumns, visibleColumns]);
-  const hasHiddenColumns = effectiveVisibleColumns.length !== columnOptions.length;
   const displayedColumnDefs = useMemo(
     () =>
       columnDefs.map((column) => ({
         ...column,
-        hide:
-          !allowedColumnValues.has(column.field) || !effectiveVisibleColumns.includes(column.field),
+        hide: !allowedColumnValues.has(column.field),
       })),
-    [allowedColumnValues, effectiveVisibleColumns],
+    [allowedColumnValues],
   );
 
   useEffect(() => {
@@ -209,18 +186,6 @@ export function LogImportResultsGrid({
     );
   }
 
-  const toggleColumn = (columnValue: ColumnField) => {
-    setVisibleColumns((current) =>
-      current.includes(columnValue)
-        ? current.filter((value) => value !== columnValue)
-        : [...current, columnValue],
-    );
-  };
-
-  const resetColumns = () => {
-    setVisibleColumns(defaultVisibleColumns);
-  };
-
   const hasRows = rowData.length > 0;
   const closeRowDetails = () => setSelectedRow(null);
 
@@ -268,36 +233,6 @@ export function LogImportResultsGrid({
         {summaryContent ? <div className="log-import-inline-summary">{summaryContent}</div> : null}
 
         {filterControls ? <div className="log-import-inline-filters">{filterControls}</div> : null}
-
-        {hasRows ? (
-          <Stack gap={6} className="log-import-column-visibility">
-            <Group justify="space-between" align="center">
-              <Text fw={600} size="sm">
-                Visible columns
-              </Text>
-              <Button
-                size="xs"
-                variant="light"
-                onClick={resetColumns}
-                disabled={!hasHiddenColumns}
-                aria-label="Reset columns"
-              >
-                Reset columns
-              </Button>
-            </Group>
-            <Group gap="md" className="log-import-column-visibility-options">
-              {columnOptions.map((option) => (
-                <Checkbox
-                  key={option.value}
-                  label={option.label}
-                  checked={visibleColumns.includes(option.value)}
-                  onChange={() => toggleColumn(option.value)}
-                  aria-label={`Toggle ${option.label} column`}
-                />
-              ))}
-            </Group>
-          </Stack>
-        ) : null}
 
         {hasRows ? (
           <div

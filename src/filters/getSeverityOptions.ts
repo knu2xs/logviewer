@@ -32,6 +32,17 @@ const ARC_GIS_PORTAL_SEVERITY_OPTIONS: SeverityOption[] = [
   { label: 'Severe', value: 'SEVERE' },
 ];
 
+const TOMCAT_SEVERITY_OPTIONS: SeverityOption[] = [
+  { label: 'NOTSET', value: 'NOTSET' },
+  { label: 'Finest', value: 'FINEST' },
+  { label: 'Finer', value: 'FINER' },
+  { label: 'Fine', value: 'FINE' },
+  { label: 'Config', value: 'CONFIG' },
+  { label: 'Info', value: 'INFO' },
+  { label: 'Warning', value: 'WARNING' },
+  { label: 'Severe', value: 'SEVERE' },
+];
+
 export function getSeverityOptions(
   sourceFormat: SourceFormat | null | undefined,
 ): SeverityOption[] {
@@ -41,6 +52,10 @@ export function getSeverityOptions(
 
   if (sourceFormat === 'ArcGIS Portal') {
     return ARC_GIS_PORTAL_SEVERITY_OPTIONS;
+  }
+
+  if (sourceFormat === 'Tomcat') {
+    return TOMCAT_SEVERITY_OPTIONS;
   }
 
   return PIPE_DELIMITED_SEVERITY_OPTIONS;

@@ -35,4 +35,17 @@ describe('getSeverityOptions', () => {
       'Severe',
     ]);
   });
+
+  it('returns Tomcat levels', () => {
+    expect(getSeverityOptions('Tomcat').map((option) => option.label)).toEqual([
+      'NOTSET',
+      'Finest',
+      'Finer',
+      'Fine',
+      'Config',
+      'Info',
+      'Warning',
+      'Severe',
+    ]);
+  });
 });

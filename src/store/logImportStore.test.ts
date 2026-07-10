@@ -73,6 +73,29 @@ describe('useLogImportStore', () => {
     expect(state.session?.rows[0]?.attributes?.source).toBe('Portal');
   });
 
+  it('detects Tomcat imports and stores logger/source fields', async () => {
+    await useLogImportStore
+      .getState()
+      .importLogFile(
+        createMockFile(
+          [
+            'Jul 01, 2026 3:30:01 PM org.apache.catalina.startup.VersionLoggerListener log',
+            'INFO: Server version name:   Apache Tomcat/10.1.34',
+          ].join('\n'),
+          'tomcat.log',
+        ),
+      );
+
+    const state = useLogImportStore.getState();
+
+    expect(state.session?.sourceFormat).toBe('Tomcat');
+    expect(state.session?.rows[0]?.logger).toBe(
+      'org.apache.catalina.startup.VersionLoggerListener',
+    );
+    expect(state.session?.rows[0]?.source).toBe('log');
+    expect(state.session?.rows[0]?.level).toBe('INFO');
+  });
+
   it('handles empty files as successful empty imports', async () => {
     await useLogImportStore.getState().importLogFile(createMockFile(''));
 

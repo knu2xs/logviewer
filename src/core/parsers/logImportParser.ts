@@ -23,6 +23,24 @@ const PIPE_LINE_PATTERN =
 const XML_START_PATTERN = /^<Msg\b(?<attributes>[^>]*)>/;
 const XML_LINE_PATTERN = /^<Msg\b(?<attributes>[^>]*)>(?<message>[\s\S]*?)<\/Msg>\s*$/;
 const XML_ATTRIBUTE_PATTERN = /([\w:-]+)="([^"]*)"/g;
+const TOMCAT_HEADER_PATTERN =
+  /^(?<month>[A-Z][a-z]{2})\s+(?<day>\d{1,2}),\s+(?<year>\d{4})\s+(?<hour>\d{1,2}):(?<minute>\d{2}):(?<second>\d{2})\s+(?<meridiem>AM|PM)\s+(?<logger>\S+)\s+(?<method>\S+)\s*$/;
+const TOMCAT_LEVEL_MESSAGE_PATTERN = /^(?<level>[A-Z]+):\s*(?<message>.*)$/;
+
+const MONTH_TO_INDEX: Record<string, number> = {
+  Jan: 0,
+  Feb: 1,
+  Mar: 2,
+  Apr: 3,
+  May: 4,
+  Jun: 5,
+  Jul: 6,
+  Aug: 7,
+  Sep: 8,
+  Oct: 9,
+  Nov: 10,
+  Dec: 11,
+};
 
 function createIdentifier(prefix: string, sessionId: string, lineNumber: number): string {
   return `${prefix}-${sessionId}-${lineNumber}`;
@@ -131,6 +149,62 @@ function parseXmlFields(line: string): ParsedFields | null {
   };
 }
 
+function parseTomcatHeader(
+  line: string,
+): { timestamp: Date; logger: string; source: string } | null {
+  const match = line.match(TOMCAT_HEADER_PATTERN);
+
+  if (!match?.groups) {
+    return null;
+  }
+
+  const month = MONTH_TO_INDEX[match.groups.month];
+
+  if (month === undefined) {
+    return null;
+  }
+
+  const year = Number(match.groups.year);
+  const day = Number(match.groups.day);
+  let hour = Number(match.groups.hour);
+  const minute = Number(match.groups.minute);
+  const second = Number(match.groups.second);
+  const meridiem = match.groups.meridiem;
+
+  if (meridiem === 'AM') {
+    if (hour === 12) {
+      hour = 0;
+    }
+  } else if (hour < 12) {
+    hour += 12;
+  }
+
+  const timestamp = new Date(year, month, day, hour, minute, second, 0);
+
+  if (Number.isNaN(timestamp.getTime())) {
+    return null;
+  }
+
+  return {
+    timestamp,
+    logger: match.groups.logger,
+    source: match.groups.method,
+  };
+}
+
+function parseTomcatLevelMessage(line: string): { level: string; message: string } | null {
+  const match = line.match(TOMCAT_LEVEL_MESSAGE_PATTERN);
+
+  if (!match?.groups) {
+    return null;
+  }
+
+  return {
+    level: match.groups.level.trim(),
+    message: match.groups.message,
+  };
+}
+
 function parseFields(line: string): ParsedFields | null {
   return parseXmlFields(line) ?? parsePipeDelimitedFields(line);
 }
@@ -163,6 +237,7 @@ function appendContinuationLine(row: ParsedLogRow, line: string): ParsedLogRow {
 function detectSourceFormat(lines: string[]): SourceFormat {
   let sawXmlLine = false;
   let sawPipeLine = false;
+  let sawTomcatLine = false;
 
   for (const line of lines) {
     const trimmedLine = line.trim();
@@ -190,13 +265,31 @@ function detectSourceFormat(lines: string[]): SourceFormat {
     if (PIPE_LINE_PATTERN.test(trimmedLine)) {
       sawPipeLine = true;
     }
+
+    if (parseTomcatHeader(trimmedLine)) {
+      sawTomcatLine = true;
+    }
   }
 
   if (sawXmlLine) {
     return 'Unknown';
   }
 
-  return sawPipeLine ? 'Python Pipe Delimited' : 'Python Pipe Delimited';
+  if (sawTomcatLine) {
+    return 'Tomcat';
+  }
+
+  return sawPipeLine ? 'Python Pipe Delimited' : 'Unknown';
+}
+
+function isNewLogEntryStart(line: string): boolean {
+  const trimmedLine = line.trim();
+
+  return (
+    XML_START_PATTERN.test(trimmedLine) ||
+    PIPE_LINE_PATTERN.test(trimmedLine) ||
+    TOMCAT_HEADER_PATTERN.test(trimmedLine)
+  );
 }
 
 function splitLines(content: string): string[] {
@@ -257,6 +350,55 @@ export function parseLogImportContent(
 
     if (trimmedLine === '') {
       continue;
+    }
+
+    const tomcatHeader = parseTomcatHeader(trimmedLine);
+
+    if (tomcatHeader) {
+      const levelLineIndex = index + 1;
+      const levelLine = lines[levelLineIndex]?.trim();
+      const parsedLevel = levelLine ? parseTomcatLevelMessage(levelLine) : null;
+
+      if (parsedLevel) {
+        const messageLines = [parsedLevel.message];
+        const rawLines = [line, lines[levelLineIndex]];
+        let entryEndIndex = levelLineIndex;
+
+        while (entryEndIndex + 1 < lines.length) {
+          const nextLine = lines[entryEndIndex + 1];
+
+          if (nextLine.trim() === '') {
+            entryEndIndex += 1;
+            continue;
+          }
+
+          if (isNewLogEntryStart(nextLine)) {
+            break;
+          }
+
+          entryEndIndex += 1;
+          messageLines.push(nextLine);
+          rawLines.push(nextLine);
+        }
+
+        rows.push({
+          id: createIdentifier('row', sessionId, lineNumber),
+          sessionId,
+          lineNumber,
+          timestamp: tomcatHeader.timestamp,
+          logger: tomcatHeader.logger,
+          source: tomcatHeader.source,
+          level: parsedLevel.level,
+          message: messageLines.join('\n').trimEnd(),
+          sourceFile: sourceFileName,
+          rawLine: rawLines.join('\n'),
+          hadContinuationLines: false,
+          attributes: {},
+        });
+
+        index = entryEndIndex;
+        continue;
+      }
     }
 
     if (XML_START_PATTERN.test(trimmedLine)) {

@@ -362,17 +362,6 @@ tr th {
   min-height: 0;
 }
 
-.log-import-column-visibility {
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-md);
-  background: var(--color-surface);
-}
-
-.log-import-column-visibility-options {
-  row-gap: var(--spacing-xs);
-}
-
 .log-import-inline-filters {
   margin-top: var(--spacing-xs);
 }
@@ -419,6 +408,12 @@ tr th {
   color: #1d4ed8;
   background-color: #dbeafe;
   border-color: #93c5fd;
+}
+
+.log-level-tag--config {
+  color: #6b21a8;
+  background-color: #f3e8ff;
+  border-color: #d8b4fe;
 }
 
 .log-level-tag--info {

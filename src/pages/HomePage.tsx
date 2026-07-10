@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Button, Group, Paper, Stack, Text, Title } from '@mantine/core';
+import { Alert, Button, Group, Modal, Paper, Stack, Text, Title } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 
 import { LogImportResultsGrid } from '../components/log-import/LogImportResultsGrid';
@@ -34,6 +34,9 @@ export const HomePage: React.FC = () => {
   const customRangeDraftStart = useLogFilterStore((state) => state.customRangeDraftStart);
   const customRangeDraftEnd = useLogFilterStore((state) => state.customRangeDraftEnd);
   const customRangeError = useLogFilterStore((state) => state.customRangeError);
+  const [dismissedUnrecognizedSessionId, setDismissedUnrecognizedSessionId] = React.useState<
+    string | null
+  >(null);
   const [debouncedSearchText] = useDebouncedValue(filters.searchText, 250);
   const rows = React.useMemo(() => session?.rows ?? [], [session]);
   const severityOptions = React.useMemo(
@@ -104,9 +107,31 @@ export const HomePage: React.FC = () => {
     hasActiveFilters && totalRowCount > 0
       ? 'No log entries match the current filters. Adjust filters above or clear all filters to continue.'
       : 'The import completed but no valid rows were found.';
+  const hasNoParsedRows =
+    session?.status === 'complete' && session.totalLines > 0 && session.rows.length === 0;
+  const isUnrecognizedFormatModalOpen =
+    Boolean(hasNoParsedRows) && session !== null && dismissedUnrecognizedSessionId !== session.id;
 
   return (
     <Stack gap="lg" className="log-import-page">
+      <Modal
+        opened={isUnrecognizedFormatModalOpen}
+        onClose={() => setDismissedUnrecognizedSessionId(session?.id ?? null)}
+        title="Unrecognized Log Format"
+        centered
+      >
+        <Stack gap="xs">
+          <Text size="sm">
+            The selected file could not be associated with a supported log format because no lines
+            were parsed successfully.
+          </Text>
+          <Text size="sm" c="dimmed">
+            Supported formats currently include Python pipe-delimited logs, ArcGIS XML logs, and
+            Tomcat logs.
+          </Text>
+        </Stack>
+      </Modal>
+
       <Paper withBorder radius="lg" p="xl" className="log-import-hero">
         <Stack gap="md">
           <div>

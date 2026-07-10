@@ -2,6 +2,7 @@ export const SOURCE_FORMATS = [
   'Python Pipe Delimited',
   'ArcGIS Server',
   'ArcGIS Portal',
+  'Tomcat',
   'Unknown',
 ] as const;
 

@@ -120,6 +120,48 @@ describe('logImportParser', () => {
     expect(result.rows[1]?.rawLine).toContain('</Msg>');
   });
 
+  it('detects and parses Tomcat two-line entries', () => {
+    const result = parseLogImportContent(
+      [
+        'Jul 01, 2026 3:30:01 PM org.apache.catalina.startup.VersionLoggerListener log',
+        'INFO: Server version name:   Apache Tomcat/10.1.34',
+      ].join('\n'),
+      'session-1',
+      'tomcat.log',
+    );
+
+    expect(result.sourceFormat).toBe('Tomcat');
+    expect(result.rows).toHaveLength(1);
+    expect(result.rows[0]?.logger).toBe('org.apache.catalina.startup.VersionLoggerListener');
+    expect(result.rows[0]?.source).toBe('log');
+    expect(result.rows[0]?.level).toBe('INFO');
+    expect(result.rows[0]?.message).toBe('Server version name:   Apache Tomcat/10.1.34');
+    expect(result.rows[0]?.hadContinuationLines).toBe(false);
+  });
+
+  it('captures multiline Tomcat stack traces in the same parsed entry', () => {
+    const result = parseLogImportContent(
+      [
+        'Jul 01, 2026 3:30:52 PM org.apache.catalina.core.StandardContext listenerStop',
+        'SEVERE: Exception sending context destroyed event to listener instance of class [com.esri.discovery.app.DiscoveryContextListener]',
+        'java.lang.NullPointerException: Cannot invoke "com.esri.arcgis.discovery.logging.Logger.log(...)" because "com.esri.client.app.statistics.BandWidthUsageTracker.logger" is null',
+        '\tat com.esri.client.app.statistics.BandWidthUsageTracker.stopTracking(BandWidthUsageTracker.java:117)',
+        'Jul 01, 2026 3:30:52 PM org.apache.catalina.loader.WebappClassLoaderBase clearReferencesThreads',
+        'WARNING: The web application [arcgis#rest] appears to have started a thread named [Thread-10] but has failed to stop it.',
+      ].join('\n'),
+      'session-1',
+      'tomcat.log',
+    );
+
+    expect(result.sourceFormat).toBe('Tomcat');
+    expect(result.rows).toHaveLength(2);
+    expect(result.rows[0]?.level).toBe('SEVERE');
+    expect(result.rows[0]?.message).toContain('java.lang.NullPointerException');
+    expect(result.rows[0]?.message).toContain('BandWidthUsageTracker.stopTracking');
+    expect(result.rows[0]?.hadContinuationLines).toBe(false);
+    expect(result.rows[1]?.level).toBe('WARNING');
+  });
+
   it('handles empty content without errors', () => {
     const result = parseLogImportContent('', 'session-1', 'sample.log');
 
@@ -146,5 +188,19 @@ describe('logImportParser', () => {
     expect(result.rows[0]?.message).toBe(
       'Unable to validate token\nFailed to execute (AddAttributeRule).',
     );
+  });
+
+  it('marks unrecognized content as unknown format when no lines can be parsed', () => {
+    const result = parseLogImportContent(
+      ['This is not a supported log line format.', 'Still not matching any known parser.'].join(
+        '\n',
+      ),
+      'session-1',
+      'unknown.log',
+    );
+
+    expect(result.sourceFormat).toBe('Unknown');
+    expect(result.rows).toHaveLength(0);
+    expect(result.totalLines).toBe(2);
   });
 });

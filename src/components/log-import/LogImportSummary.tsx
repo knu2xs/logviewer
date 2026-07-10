@@ -8,7 +8,37 @@ interface LogImportSummaryProps {
 }
 
 function formatTimestamp(value: Date | null): string {
-  return value ? value.toLocaleString() : 'Not completed yet';
+  return value ? value.toLocaleString() : 'Not available';
+}
+
+function getLogTimeBounds(rows: ImportSession['rows']): {
+  startTime: Date | null;
+  endTime: Date | null;
+} {
+  if (rows.length === 0) {
+    return {
+      startTime: null,
+      endTime: null,
+    };
+  }
+
+  let startTime = rows[0].timestamp;
+  let endTime = rows[0].timestamp;
+
+  for (const row of rows) {
+    if (row.timestamp < startTime) {
+      startTime = row.timestamp;
+    }
+
+    if (row.timestamp > endTime) {
+      endTime = row.timestamp;
+    }
+  }
+
+  return {
+    startTime,
+    endTime,
+  };
 }
 
 export function LogImportSummary({ session, errorMessage }: LogImportSummaryProps) {
@@ -27,6 +57,7 @@ export function LogImportSummary({ session, errorMessage }: LogImportSummaryProp
 
   const statusLabel = session.status === 'failed' ? 'failed' : session.status;
   const continuedRows = session.rows.filter((row) => row.hadContinuationLines === true);
+  const { startTime, endTime } = getLogTimeBounds(session.rows);
 
   return (
     <Stack gap="md">
@@ -58,15 +89,15 @@ export function LogImportSummary({ session, errorMessage }: LogImportSummaryProp
             </div>
             <div>
               <Text size="xs" tt="uppercase" c="dimmed">
-                Started
+                Log start time
               </Text>
-              <Text fw={600}>{formatTimestamp(session.startedAt)}</Text>
+              <Text fw={600}>{formatTimestamp(startTime)}</Text>
             </div>
             <div>
               <Text size="xs" tt="uppercase" c="dimmed">
-                Completed
+                Log end time
               </Text>
-              <Text fw={600}>{formatTimestamp(session.completedAt)}</Text>
+              <Text fw={600}>{formatTimestamp(endTime)}</Text>
             </div>
           </Group>
 
