@@ -96,6 +96,43 @@ describe('useLogImportStore', () => {
     expect(state.session?.rows[0]?.level).toBe('INFO');
   });
 
+  it('re-imports as a fresh session when selecting another file', async () => {
+    const state = useLogImportStore.getState();
+
+    await state.importLogFile(
+      createMockFile(
+        '2026-07-09 08:15:21 | Portal.Security | ERROR | Unable to validate token',
+        'pipe.log',
+      ),
+    );
+
+    const firstSession = useLogImportStore.getState().session;
+
+    await state.importLogFile(
+      createMockFile(
+        [
+          'Jul 01, 2026 3:30:01 PM org.apache.catalina.startup.VersionLoggerListener log',
+          'INFO: Server version name:   Apache Tomcat/10.1.34',
+        ].join('\n'),
+        'tomcat.log',
+      ),
+    );
+
+    const secondSession = useLogImportStore.getState().session;
+
+    expect(firstSession?.sourceFormat).toBe('Python Pipe Delimited');
+    expect(firstSession?.sourceFileName).toBe('pipe.log');
+    expect(firstSession?.rows).toHaveLength(1);
+
+    expect(secondSession?.sourceFormat).toBe('Tomcat');
+    expect(secondSession?.sourceFileName).toBe('tomcat.log');
+    expect(secondSession?.rows).toHaveLength(1);
+    expect(secondSession?.rows[0]?.logger).toBe(
+      'org.apache.catalina.startup.VersionLoggerListener',
+    );
+    expect(secondSession?.id).not.toBe(firstSession?.id);
+  });
+
   it('handles empty files as successful empty imports', async () => {
     await useLogImportStore.getState().importLogFile(createMockFile(''));
 

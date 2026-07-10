@@ -37,6 +37,7 @@ export const HomePage: React.FC = () => {
   const [dismissedUnrecognizedSessionId, setDismissedUnrecognizedSessionId] = React.useState<
     string | null
   >(null);
+  const [isDragActive, setIsDragActive] = React.useState(false);
   const [debouncedSearchText] = useDebouncedValue(filters.searchText, 250);
   const rows = React.useMemo(() => session?.rows ?? [], [session]);
   const severityOptions = React.useMemo(
@@ -44,15 +45,67 @@ export const HomePage: React.FC = () => {
     [session?.sourceFormat],
   );
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const isSupportedLogFile = (file: File): boolean => {
+    const normalizedName = file.name.toLowerCase();
 
-    if (!file) {
+    return (
+      normalizedName.endsWith('.log') ||
+      normalizedName.endsWith('.txt') ||
+      file.type === 'text/plain'
+    );
+  };
+
+  const importSelectedFile = async (file: File | null | undefined) => {
+    if (!file || !isSupportedLogFile(file)) {
       return;
     }
 
     await importLogFile(file);
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    await importSelectedFile(file);
     event.target.value = '';
+  };
+
+  const handleDragEnter = (event: React.DragEvent<HTMLElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!isImporting) {
+      setIsDragActive(true);
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = 'copy';
+
+    if (!isImporting && !isDragActive) {
+      setIsDragActive(true);
+    }
+  };
+
+  const handleDragLeave = (event: React.DragEvent<HTMLElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragActive(false);
+  };
+
+  const handleDrop = async (event: React.DragEvent<HTMLElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragActive(false);
+
+    if (isImporting) {
+      return;
+    }
+
+    const file = event.dataTransfer.files?.[0];
+    await importSelectedFile(file);
   };
 
   const isImporting = session?.status === 'importing';
@@ -143,7 +196,13 @@ export const HomePage: React.FC = () => {
           </div>
 
           <Group align="flex-end" gap="md" className="log-import-actions">
-            <label className={`log-import-file-picker${isImporting ? ' is-disabled' : ''}`}>
+            <label
+              className={`log-import-file-picker${isImporting ? ' is-disabled' : ''}${isDragActive ? ' is-drag-active' : ''}`}
+              onDragEnter={handleDragEnter}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
               <input
                 className="log-import-file-input"
                 aria-label="Open Log File"
@@ -161,6 +220,9 @@ export const HomePage: React.FC = () => {
                 className="log-import-file-name"
               >
                 {selectedFileName}
+              </Text>
+              <Text size="sm" c="dimmed" className="log-import-file-hint">
+                or drag and drop a log file here
               </Text>
             </label>
 
